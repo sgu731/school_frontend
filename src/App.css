@@ -2,8 +2,12 @@
   text-align: center;
 }
 
+body {
+    font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
+}
+
 .App-header {
-  background-color: #282c34;
+  background-color: #f2e6db;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -36,3 +40,49 @@ button {
   width: 200px;
   margin: 10px;
 }
+
+.login-box {
+    background-color: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    width: 350px;
+    margin: 40px auto;
+}
+
+.login-box h1{
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #F18F39;
+}
+
+
+.login-box input {
+     width: 100%;
+     box-sizing: border-box;
+     margin-bottom: 15px;
+     padding: 12px;
+     border: none;
+     border-radius: 8px;
+     font-size: 16px;
+
+}
+
+    .login-box input[type="checkbox"] {
+        width: auto;
+        margin-right: 10px;
+    }
+    .login-box button {
+        width: 100%;
+        background-color: #F18F39;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 18px;
+        transition: background-color 0.3s;
+    }
+
+        .login-box button:hover {
+            background-color: #fcb270;
+        }
