@@ -6,6 +6,7 @@ body {
     font-family: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', 'Helvetica Neue', Arial, sans-serif;
 }
 
+
 .App-header {
   background-color: #f2e6db;
   min-height: 100vh;
@@ -14,7 +15,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: black;
 }
 
 input {
