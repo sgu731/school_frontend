@@ -1,30 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const plans = [
   {
     id: 1,
     subject: '複習微積分',
-    day: 0, 
+    day: 0,
     start: '13:30',
     end: '15:30',
   },
   {
     id: 2,
     subject: '複習初會',
-    day: 3, 
+    day: 3,
     start: '13:00',
     end: '17:00',
   },
 ];
 
 const PlanPage = () => {
-  const days = ['6', '7', '8', '9', '10', '11', '12'];
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // 產生半小時的時間區段：12:00 ~ 23:30，共 24 格
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const hour = 12 + Math.floor(i / 2);
+  // 計算當週的 7 天日期
+  const getWeekDates = (date) => {
+    const startOfWeek = new Date(date);
+    const diff = startOfWeek.getDay(); // 星期幾（0～6）
+    startOfWeek.setDate(date.getDate() - diff);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+  };
+
+  const weekDates = getWeekDates(selectedDate);
+
+  // 時間格：00:00 ~ 23:30
+  const timeSlots = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2);
     const minute = i % 2 === 0 ? '00' : '30';
-    return `${hour}:${minute}`;
+    return `${hour.toString().padStart(2, '0')}:${minute}`;
   });
 
   const toMinutes = (timeStr) => {
@@ -34,49 +50,77 @@ const PlanPage = () => {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-
-      {/* 日期 */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1rem' }}>
-        <button>{'<'}</button>
-        <h3 style={{ margin: '0 1rem' }}>10 月 6 日 - 10 月 12 日</h3>
-        <button>{'>'}</button>
+      {/* 日曆 */}
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          dateFormat="yyyy/MM/dd"
+        />
       </div>
 
       {/* 表格 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 150px)', border: '1px solid #ccc' }}>
-        {/* 星期 */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '80px repeat(7, 150px)',
+          border: '1px solid #ccc',
+          boxSizing: 'border-box',
+          overflowX: 'auto',
+          width: 'fit-content',
+          margin: '0 auto',
+        }}
+      >
+        {/* 星期標題列 */}
         <div></div>
-        {days.map((day, idx) => (
-          <div key={idx} style={{ textAlign: 'center', padding: '0.5rem', backgroundColor: '#f2f2f2' }}>
-            {day}
+        {weekDates.map((day, idx) => (
+          <div
+            key={idx}
+            style={{
+              textAlign: 'center',
+              padding: '0.5rem',
+              backgroundColor: '#f2f2f2',
+              fontSize: '14px',
+            }}
+          >
+            {day.toLocaleDateString('zh-TW', {
+              month: 'numeric',
+              day: 'numeric',
+              weekday: 'short',
+            })}
           </div>
         ))}
 
-        {/* 時間與內容 */}
-        {timeSlots.map((time, slotIdx) => (
+        {/* 每半小時一列 */}
+        {timeSlots.map((time) => (
           <React.Fragment key={time}>
             {/* 左側時間欄 */}
             <div
               style={{
-                padding: '0.25rem',
+                height: '30px',
                 fontSize: '0.8rem',
-                backgroundColor: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRight: '1px solid #ccc',
                 color: time.endsWith(':00') ? '#000' : 'transparent',
               }}
             >
               {time}
             </div>
 
-            {/* 各日時間格 */}
-            {days.map((_, idx) => {
+            {/* 各日格子 */}
+            {weekDates.map((_, idx) => {
               const slotStart = toMinutes(time);
-              const slotEnd = slotStart + 30;
+              const planToRender = plans.find(
+                (plan) => plan.day === idx && toMinutes(plan.start) === slotStart
+              );
 
-              const planInThisCell = plans.find((plan) => {
-                const planStart = toMinutes(plan.start);
-                const planEnd = toMinutes(plan.end);
-                return plan.day === idx && planEnd > slotStart && planStart < slotEnd;
-              });
+              let planHeight = 30;
+              if (planToRender) {
+                const duration = toMinutes(planToRender.end) - toMinutes(planToRender.start);
+                planHeight = (duration / 30) * 30;
+              }
 
               return (
                 <div
@@ -85,28 +129,35 @@ const PlanPage = () => {
                     borderTop: '1px solid #ccc',
                     borderLeft: idx === 0 ? '1px solid #ccc' : '',
                     height: '30px',
-                    backgroundColor: idx % 2 === 0 ? '#fff' : '#f9f9f9',
                     position: 'relative',
+                    backgroundColor: idx % 2 === 0 ? '#fff' : '#f9f9f9',
                   }}
                 >
-                  {planInThisCell && (
+                  {planToRender && (
                     <div
                       style={{
                         position: 'absolute',
                         top: 0,
-                        left: 0,
-                        right: 0,
-                        height: '100%',
-                        backgroundColor: 'rgba(255, 147, 41, 0.7)',
+                        left: 2,
+                        right: 2,
+                        height: `${planHeight}px`,
+                        backgroundColor: 'rgba(255, 147, 41, 0.85)',
                         color: '#000',
-                        fontSize: '10px',
-                        padding: '1px',
+                        fontSize: '12px',
+                        padding: '4px',
                         borderRadius: '4px',
+                        boxSizing: 'border-box',
+                        zIndex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        textAlign: 'center',
                       }}
                     >
-                      <strong>{planInThisCell.subject}</strong>
-                      <div style={{ fontSize: '9px' }}>
-                        {planInThisCell.start} - {planInThisCell.end}
+                      <strong>{planToRender.subject}</strong>
+                      <div style={{ fontSize: '11px' }}>
+                        {planToRender.start} - {planToRender.end}
                       </div>
                     </div>
                   )}
