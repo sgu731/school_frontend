@@ -71,9 +71,7 @@ function HomePage() {
             setUser({ username, name: data.name });
 
             // 保存 JWT 到 Local Storage
-            if (rememberMe) {
-                localStorage.setItem('token', data.token);
-            }
+            localStorage.setItem('token', data.token);
             fetchSubjects(data.token); // 獲取科目列表
             fetchStudyRecords(data.token); // 獲取讀書紀錄
         } else {
@@ -159,6 +157,7 @@ function HomePage() {
 
         // 保存紀錄到後端
         const token = localStorage.getItem('token');
+        console.log('新增科目 token:', token);
         const response = await fetch('http://localhost:5000/api/study/study-records', {
             method: 'POST',
             headers: {

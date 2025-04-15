@@ -3,16 +3,16 @@ import React from 'react';
 import './App.css';
 
 import HomePage from './pages/HomePage';
+import NotebookDashboard from './pages/NotebookDashboard';
+import NoteDetailPage from './pages/NoteDetailPage';
+import CameraPage from './pages/CameraPage';
+import VoicePage from './pages/VoicePage';
 import RoomsPage from './pages/RoomsPage';
 import TrackerPage from './pages/TrackerPage';
 import PlanPage from './pages/PlanPage';
 import KnowledgePage from './pages/KnowledgePage';
 import ForumPage from './pages/ForumPage';
 import SharingPage from './pages/SharingPage';
-import VoicePage from './pages/VoicePage';
-import CameraPage from './pages/CameraPage';
-import NotebookDashboard from './pages/NotebookDashboard';
-import NoteDetailPage from './pages/NoteDetailPage';
 
 function App() {
   return (
@@ -44,15 +44,16 @@ function App() {
           <div className="page-content">
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/notebook" element={<NotebookDashboard />} />
+              <Route path="/notebook/:index" element={<NoteDetailPage />} />
+              <Route path="/camera" element={<CameraPage />} />
+              <Route path="/voice" element={<VoicePage />} />
               <Route path="/rooms" element={<RoomsPage />} />
               <Route path="/tracker" element={<TrackerPage />} />
               <Route path="/plan" element={<PlanPage />} />
               <Route path="/knowledge" element={<KnowledgePage />} />
               <Route path="/forum" element={<ForumPage />} />
               <Route path="/sharing" element={<SharingPage />} />
-              <Route path="/voice" element={<VoicePage />} />
-              <Route path="/camera" element={<CameraPage />} />
-              <Route path="/notebook" element={<NotebookDashboard />} />
               <Route path="/note-detail" element={<NoteDetailPage />} />
             </Routes>
           </div>

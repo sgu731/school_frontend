@@ -76,7 +76,7 @@ export default function CameraPage() {
   const handleOCR = async () => {
     if (!selectedImage) return;
     setLoading(true);
-    const { data } = await Tesseract.recognize(selectedImage, "eng+chi_tra", {
+    const { data } = await Tesseract.recognize(selectedImage, "eng", {
       logger: (m) => console.log(m),
     });
     setLoading(false);
