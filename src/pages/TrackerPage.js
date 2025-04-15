@@ -1,50 +1,58 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer
+  BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
-import {
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-
-const barData = [
-  { date: '12/1', Java: 4, Python: 2, C: 1, Calculus: 3 },
-  { date: '12/2', Java: 3, Python: 2, C: 0, Calculus: 0 },
-  { date: '12/3', Java: 0, Python: 0, C: 0, Calculus: 0 }, 
-  { date: '12/4', Java: 2, Python: 1, C: 0, Calculus: 0 },
-  { date: '12/5', Java: 3, Python: 2, C: 2, Calculus: 4 },
-  { date: '12/6', Java: 4, Python: 2, C: 3, Calculus: 4 },
-  { date: '12/7', Java: 0, Python: 0, C: 0, Calculus: 0 },
-  { date: '12/8', Java: 5, Python: 2, C: 2, Calculus: 5 },
-  { date: '12/9', Java: 0, Python: 0, C: 0, Calculus: 0 },
-  { date: '12/10', Java: 3, Python: 3, C: 0, Calculus: 2 },
-];
-
-const pieData = [
-  { name: 'Java', value: 10 },
-  { name: 'Python', value: 7 },
-  { name: 'C', value: 4 },
-  { name: 'Calculus', value: 8 },
-];
 
 const COLORS = ['#4472c4', '#ed7d31', '#70ad47', '#5b9bd5'];
 
 const TrackerPage = () => {
+  const [barData, setBarData] = useState([]);
+  const [pieData, setPieData] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    fetch('http://localhost:5000/api/study/study-records', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const records = data.studyRecords;
+        const formatted = records.map(r => ({
+          ...r,
+          date: new Date(r.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })
+        }));
+
+        const barMap = {};
+        const pieMap = {};
+
+        for (const r of formatted) {
+          const subj = r.subject_name;
+          const hrs = r.duration / 3600;
+          barMap[r.date] = barMap[r.date] || {};
+          barMap[r.date][subj] = (barMap[r.date][subj] || 0) + hrs;
+          pieMap[subj] = (pieMap[subj] || 0) + hrs;
+        }
+
+        const barList = Object.entries(barMap).map(([date, subjects]) => ({
+          date,
+          ...subjects
+        }));
+
+        const pieList = Object.entries(pieMap).map(([name, value]) => ({ name, value }));
+
+        setBarData(barList);
+        setPieData(pieList);
+      });
+  }, []);
+
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <h2 style={{ textAlign: 'left' }}>成效追蹤</h2>
 
-      <div style={{
-        marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap'
-      }}>
-        {/* 長條圖 */}
+      <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '400px' }}>
           <h3>綜合學習時間</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -53,27 +61,21 @@ const TrackerPage = () => {
               <XAxis dataKey="date" interval={0} tick={{ fontSize: 12 }} />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="Java" stackId="a" fill={COLORS[0]} />
-              <Bar dataKey="Python" stackId="a" fill={COLORS[1]} />
-              <Bar dataKey="C" stackId="a" fill={COLORS[2]} />
-              <Bar dataKey="Calculus" stackId="a" fill={COLORS[3]} />
+              {pieData.map((item, index) => (
+                <Bar key={item.name} dataKey={item.name} stackId="a" fill={COLORS[index % COLORS.length]} />
+              ))}
             </BarChart>
           </ResponsiveContainer>
-
-          {/* 長條圖圖例 */}
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
             {pieData.map((item, index) => (
               <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{
-                  width: '12px', height: '12px', backgroundColor: COLORS[index % COLORS.length], marginRight: '0.5rem', borderRadius: '2px'
-                }}></div>
+                <div style={{ width: '12px', height: '12px', backgroundColor: COLORS[index % COLORS.length], marginRight: '0.5rem', borderRadius: '2px' }}></div>
                 <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 圓餅圖 */}
         <div style={{ flex: 1, minWidth: '400px' }}>
           <h3>學習時間比例</h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -94,14 +96,10 @@ const TrackerPage = () => {
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-
-          {/* 圓餅圖圖例 */}
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
             {pieData.map((item, index) => (
               <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
-                <div style={{
-                  width: '12px', height: '12px', backgroundColor: COLORS[index % COLORS.length], marginRight: '0.5rem', borderRadius: '2px'
-                }}></div>
+                <div style={{ width: '12px', height: '12px', backgroundColor: COLORS[index % COLORS.length], marginRight: '0.5rem', borderRadius: '2px' }}></div>
                 <span style={{ fontSize: '0.9rem' }}>{item.name}</span>
               </div>
             ))}
