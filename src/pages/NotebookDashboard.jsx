@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Input } from "../components/ui/input";
+import { Card } from "../components/ui/card";
+import { Avatar } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
 import { Search, Pencil, Trash2, Save, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

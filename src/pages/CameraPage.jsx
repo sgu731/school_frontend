@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import Tesseract from "tesseract.js";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
 import {
   Camera,
   Upload,
@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "../components/ui/dialog";
 
 export default function CameraPage() {
   const [images, setImages] = useState([]);

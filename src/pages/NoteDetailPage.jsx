@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
