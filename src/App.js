@@ -4,7 +4,6 @@ import './App.css';
 
 import HomePage from './pages/HomePage';
 import NotebookDashboard from './pages/NotebookDashboard';
-import NoteDetailPage from './pages/NoteDetailPage';
 import CameraPage from './pages/CameraPage';
 import VoicePage from './pages/VoicePage';
 import RoomsPage from './pages/RoomsPage';
@@ -38,14 +37,12 @@ function App() {
             <Link to="/forum">討論區</Link>
             <Link to="/sharing">筆記分享</Link>
             <Link to="/plan">讀書計畫</Link>
-            <Link to="/note-detail">筆記細節</Link>
           </nav>
 
           <div className="page-content">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/notebook" element={<NotebookDashboard />} />
-              <Route path="/notebook/:index" element={<NoteDetailPage />} />
               <Route path="/camera" element={<CameraPage />} />
               <Route path="/voice" element={<VoicePage />} />
               <Route path="/rooms" element={<RoomsPage />} />
@@ -54,7 +51,6 @@ function App() {
               <Route path="/knowledge" element={<KnowledgePage />} />
               <Route path="/forum" element={<ForumPage />} />
               <Route path="/sharing" element={<SharingPage />} />
-              <Route path="/note-detail" element={<NoteDetailPage />} />
             </Routes>
           </div>
         </div>
