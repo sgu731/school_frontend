@@ -1,127 +1,70 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import './RoomsPage.css';
 
 function RoomsPage() {
-  const [roomName, setRoomName] = useState(''); // ¥Î©ó³Ğ«Ø©Ğ¶¡ªº¦WºÙ
-  const [allRooms, setAllRooms] = useState([]); // ¥ş³¡ªº©Ğ¶¡¦Cªí
-  const [currentRoom, setCurrentRoom] = useState(null); // ¨Ï¥ÎªÌ·í«e¥[¤Jªº©Ğ¶¡
-  const [message, setMessage] = useState(''); // ¥Î©óÅã¥Ü®ø®§
+    const [roomName, setRoomName] = useState('');
+    const [allRooms, setAllRooms] = useState([]);
+    const [currentRoom, setCurrentRoom] = useState(null);
+    const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
-  // Àò¨ú¥ş³¡ªº©Ğ¶¡¦Cªí
-  const fetchAllRooms = async () => {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/study/rooms/all', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    useEffect(() => {
+        setAllRooms([
+            { id: 1, name: "Room A", creator_name: "Tina", online: true },
+            { id: 2, name: "Room B", creator_name: "Toby", online: false },
+            { id: 3, name: "Room C", creator_name: "Teresa", online: false },
+        ]);
+        setCurrentRoom({ id: 1, name: "Room A", creator_name: "Tina" });
+    }, []);
 
-    if (response.ok) {
-      const data = await response.json();
-      setAllRooms(data.rooms);
-    }
-  };
+    return (
+        <div style={{ padding: "2rem" }}>
+            <h2>è‡ªç¿’å®¤</h2>
 
-  // Àò¨ú¨Ï¥ÎªÌ·í«e¥[¤Jªº©Ğ¶¡
-  const fetchCurrentRoom = async () => {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/study/rooms/current', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+            <div>
+                <h3>å‰µå»ºè‡ªç¿’å®¤</h3>
+                <input
+                    type="text"
+                    placeholder="è¼¸å…¥åç¨±"
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                />
+                <button onClick={() => alert("æ­¤åŠŸèƒ½å°šæœªå¯¦ä½œ")}>å‰µå»ºè‡ªç¿’å®¤</button>
+            </div>
 
-    if (response.ok) {
-      const data = await response.json();
-      setCurrentRoom(data.room);
-    }
-  };
+            <div>
+                <h3>è‡ªç¿’å®¤åˆ—è¡¨</h3>
+                <div style={{ display: "grid", gap: "1rem" }}>
+                    {allRooms.map((room) => (
+                        <div key={room.id} className="room-card">
+                            <div className="room-info">
+                                <div className={`status-dot ${room.online ? "status-online" : "status-offline"}`}></div>
+                                <span>{room.name}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                                <span style={{ fontSize: "0.9rem", color: "#555" }}>æˆ¿ä¸»: {room.creator_name}</span>
+                                <button className="enter-btn" onClick={() => navigate("/studyroom")}>
+                                    é€²å…¥æˆ¿é–“
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
-  // ³Ğ«Ø©Ğ¶¡
-  const createRoom = async () => {
-    const token = localStorage.getItem('token');
-    const response = await fetch('http://localhost:5000/api/study/rooms', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ name: roomName }),
-    });
+            {currentRoom && (
+                <div style={{ marginTop: "2rem" }}>
+                    <h3>ä½ ç›®å‰çš„æˆ¿é–“</h3>
+                    <p>
+                        ä½ ç›®å‰åœ¨: <strong>{currentRoom.name}</strong> (æˆ¿ä¸»: {currentRoom.creator_name})
+                    </p>
+                </div>
+            )}
 
-    const data = await response.json();
-    if (response.ok) {
-      setMessage('Room created successfully');
-      setRoomName(''); // ²MªÅ¿é¤J®Ø
-      fetchAllRooms(); // ¨ê·s¥ş³¡ªº©Ğ¶¡¦Cªí
-    } else {
-      setMessage('Failed to create room');
-    }
-  };
-
-  // ¥[¤J©Ğ¶¡
-  const joinRoom = async (roomId) => {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:5000/api/study/rooms/${roomId}/join`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      setMessage('Joined room successfully');
-      fetchCurrentRoom(); // ¨ê·s¨Ï¥ÎªÌ·í«e¥[¤Jªº©Ğ¶¡
-      fetchAllRooms(); // ¨ê·s¥ş³¡ªº©Ğ¶¡¦Cªí
-    } else {
-      setMessage(data.message || 'Failed to join room');
-    }
-  };
-
-  // ¦b²Õ¥ó¥[¸ü®ÉÀò¨ú¥ş³¡ªº©Ğ¶¡¦Cªí©M¨Ï¥ÎªÌ·í«e¥[¤Jªº©Ğ¶¡
-  useEffect(() => {
-    fetchAllRooms();
-    fetchCurrentRoom();
-  }, []);
-
-  return (
-    <div>
-      <h2>¦Û²ß«Ç</h2>
-      <div>
-        <h3>³Ğ«Ø¦Û²ß«Ç</h3>
-        <input
-          type="text"
-          placeholder="¿é¤J¦WºÙ"
-          value={roomName}
-          onChange={(e) => setRoomName(e.target.value)}
-        />
-        <button onClick={createRoom}>³Ğ«Ø¦Û²ß«Ç</button>
-      </div>
-      <div>
-        <h3>¦Û²ß«Ç¦Cªí</h3>
-        <ul>
-          {allRooms.map((room) => (
-            <li key={room.id}>
-              {room.name} (©Ğ¥D: {room.creator_name})
-              {!currentRoom && ( // ¦pªG¨Ï¥ÎªÌ¨S¦³¥[¤J¥ô¦ó©Ğ¶¡¡AÅã¥Ü¥[¤J«ö¶s
-                <button onClick={() => joinRoom(room.id)}>¥[¤J</button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-      {currentRoom && (
-        <div>
-          <h3>§A¥Ø«eªº©Ğ¶¡</h3>
-          <p>
-            §A¥Ø«e¦b: <strong>{currentRoom.name}</strong> (©Ğ¥D: {currentRoom.creator_name})
-          </p>
+            {message && <p>{message}</p>}
         </div>
-      )}
-      {message && <p>{message}</p>}
-    </div>
-  );
+    );
 }
 
 export default RoomsPage;

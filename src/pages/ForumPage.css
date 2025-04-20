@@ -1,0 +1,37 @@
+﻿.forum-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    font-family: sans-serif;
+}
+
+.thread-card {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+}
+
+.thread-author {
+    width: 100px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.avatar-placeholder {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.thread-content {
+    flex: 1;
+}
+
+    .thread-content h3 {
+        margin: 0 0 5px;
+    }
+
+.thread-meta span {
+    margin-right: 15px;
+    font-size: 14px;
+    color: #666;
+}
