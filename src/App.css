@@ -26,8 +26,14 @@
   font-size: 16px;
 }
 
-.user-icon {
+.user-icon a {
+  text-decoration: none; 
+  color: inherit;
   font-size: 24px;
+}
+
+.form-group {
+  margin: 10px 0;
 }
 
 /* 側邊 + 內容 */
