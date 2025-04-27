@@ -1,71 +1,128 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ChangePasswordModal from '../components/account/ChangePasswordForm';
+import UploadAvatar from '../components/account/UploadAvatar'; 
 
-function UserProfilePage({ user, setUser, setIsLoggedIn }) {
-    const [newName, setNewName] = useState('');
-    const navigate = useNavigate();
+export default function UserProfile({ user, setUser, setIsLoggedIn }) {
+  const [newName, setNewName] = useState('');
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const navigate = useNavigate(); 
 
-    const handleUpdateName = async () => {
-        const token = localStorage.getItem('token');
-        try {
-            const response = await fetch('http://localhost:5000/profile', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ name: newName }),
-            });
+  const handleUpdateName = async () => {
+    if (!newName.trim()) {
+      alert('輸入新名字');
+      return;
+    }
 
-            if (response.ok) {
-                setUser(prev => ({ ...prev, name: newName }));
-                alert('名字修改成功！');
-            } else {
-                alert('修改失敗');
-            }
-        } catch (error) {
-            console.error('Error updating name:', error);
-            alert('修改失敗');
-        }
-    };
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('未登入');
+      return;
+    }
 
-    const handleLogout = () => {
-        setIsLoggedIn(false);
-        setUser(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('rememberUsername');
-        localStorage.removeItem('rememberPassword');
-        navigate('/login');
-    };
+    const res = await fetch('http://localhost:5000/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+      body: JSON.stringify({ name: newName })
+    });
 
-    return (
-        <div style={{ padding: '30px' }}>
-            <h2>帳號管理</h2>
-            <p>目前使用者：{user?.name}</p>
+    if (res.ok) {
+      setUser(prev => ({ ...prev, name: newName }));
+      alert('名字修改成功！');
+      setNewName('');
+    } else {
+      alert('名字修改失敗');
+    }
+  };
 
-            <div style={{ margin: '20px 0' }}>
-                <input
-                    type="text"
-                    placeholder="輸入新名字"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                />
-                <button onClick={handleUpdateName}>修改名字</button>
-            </div>
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUser(null);
+    localStorage.clear();
+    navigate('/login');
+  };
 
-            <div style={{ margin: '20px 0' }}>
-                <button onClick={() => alert('修改密碼（之後做）')}>修改密碼</button>
-            </div>
+  return (
+    <div style={{ padding: '32px', maxWidth: '600px' }}>
+      <h2>帳號管理</h2>
+      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+        {user?.avatar ? (
+          <img
+            src={`http://localhost:5000${user.avatar}`}
+            alt=""
+            style={{
+              width: '120px',
+              height: '120px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '2px solid #ccc'
+            }}
+          />
+        ) : (
+          <div style={{
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            backgroundColor: '#eee',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '40px',
+            color: '#aaa',
+            margin: '0 auto'
+          }}>
+            👤
+          </div>
+        )}
+      </div>
 
-            <div style={{ margin: '20px 0' }}>
-                <button onClick={() => alert('刪除帳號（之後做）')}>刪除帳號</button>
-            </div>
+      <UploadAvatar user={user} setUser={setUser} />
 
-            <div style={{ margin: '20px 0' }}>
-                <button onClick={handleLogout}>登出</button>
-            </div>
-        </div>
-    );
+      <p>目前使用者：{user?.name}</p>
+
+      {/* 修改名字 */}
+      <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text"
+          placeholder="輸入新名字"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          style={{ padding: '5px', marginRight: '10px', flex: '1' }}
+        />
+        <button onClick={handleUpdateName} style={{ padding: '6px 12px' }}>
+          修改名字
+        </button>
+      </div>
+
+      {/* 修改密碼 */}
+      <div style={{ margin: '20px 0' }}>
+        <button
+            onClick={() => setShowChangePassword(true)} style={{ padding: '8px 16px' }}>
+        修改密碼
+        </button>
+      </div>
+      {showChangePassword && (<ChangePasswordModal onClose={() => setShowChangePassword(false)} />)}
+
+      {/* 刪除帳號 */}
+      <div style={{ margin: '20px 0' }}>
+        <button
+          onClick={() => alert('刪除帳號（待做）')} style={{ padding: '8px 16px' }}>
+          刪除帳號
+        </button>
+      </div>
+
+      {/* 登出 */}
+      <div style={{ marginTop: '40px' }}>
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: '8px 16px',
+            cursor: 'pointer',
+          }}
+        >
+          登出
+        </button>
+      </div>
+    </div>
+  );
 }
-
-export default UserProfilePage;

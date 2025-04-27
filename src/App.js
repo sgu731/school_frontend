@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import HomePage from './pages/HomePage';
+// import HomePage from './pages/HomePage';
 import NotebookDashboard from './pages/NotebookDashboard';
 import CameraPage from './pages/CameraPage';
 import VoicePage from './pages/VoicePage';
@@ -17,6 +17,7 @@ import SharingPage from './pages/SharingPage';
 import NoteDetail from "./pages/NoteDetail";
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
+import RegisterPage from './pages/RegisterPage';
 
 const queryClient = new QueryClient();
 
@@ -35,21 +36,36 @@ function App() {
                     <header className="top-bar">
                         <div className="logo">逮救補</div>
                         <input type="text" placeholder="搜尋" className="search-bar" />
-                        <div className="user-icon">
-                        {isLoggedIn ? (
-                            <Link to="/profile" className="user-link">
-                            👤&nbsp;Hi,&nbsp;{user?.name || '使用者'}
-                            </Link>
-                        ) : (
-                            <Link to="/login" className="user-link">👤</Link>
-                        )}
-                        </div>
+                            <div className="user-icon">
+                            {isLoggedIn ? (
+                                <Link to="/profile" className="user-link" style={{ display: 'flex', alignItems: 'center' }}>
+                                {user?.avatar ? (
+                                    <img
+                                    src={`http://localhost:5000${user.avatar}`}
+                                    alt="avatar"
+                                    style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        marginRight: '8px'
+                                    }}
+                                    />
+                                ) : (
+                                    <span style={{ fontSize: '24px' }}>👤</span>
+                                )}
+                                Hi, {user?.name || '使用者'}
+                                </Link>
+                            ) : (
+                                <Link to="/login" className="user-link">👤</Link>
+                            )}
+                            </div>
                     </header>
 
                     {/* 左側選單 + 右側內容 */}
                     <div className="main-content">
                         <nav className="side-menu">
-                            <Link to="/">登入</Link>
+                            {/* <Link to="/">登入</Link> */}
                             <Link to="/notebook">你的筆記</Link>
                             <Link to="/camera">相機</Link>
                             <Link to="/voice">語音</Link>
@@ -63,7 +79,11 @@ function App() {
 
                         <div className="page-content">
                             <Routes>
-                                <Route path="/" element={<HomePage />} />
+                                {/* <Route path="/" element={<HomePage />} /> */}
+                                <Route path="/" element={<Navigate to="/login" replace />} />
+                                <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />} />
+                                <Route path="/profile" element={<UserProfilePage user={user} setUser={setUser} setIsLoggedIn={setIsLoggedIn} />} />
+                                <Route path="/register" element={<RegisterPage />} />
                                 <Route path="/notebook" element={<NotebookDashboard />} />
                                 <Route path="/camera" element={<CameraPage />} />
                                 <Route path="/voice" element={<VoicePage />} />
@@ -75,8 +95,6 @@ function App() {
                                 <Route path="/forum" element={<ForumPage />} />
                                 <Route path="/sharing" element={<SharingPage />} />
                                 <Route path="/sharing/:id"element={<NoteDetail />} />
-                                <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />} />
-                                <Route path="/profile" element={<UserProfilePage user={user} setUser={setUser} setIsLoggedIn={setIsLoggedIn} />} />
                             </Routes>
                         </div>
                     </div>

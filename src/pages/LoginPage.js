@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function LoginPage({ setIsLoggedIn, setUser }) {
     const [username, setUsername] = useState('');
@@ -32,7 +33,7 @@ function LoginPage({ setIsLoggedIn, setUser }) {
             setIsLoggedIn(true);
             setUser({ username: username, name: data.name });
             setMessage('登入成功！');
-            navigate('/notebook'); // 登入成功跳回首頁
+            navigate('/notebook');
         } else {
             setMessage(data.message || '登入失敗');
         }
@@ -55,6 +56,7 @@ function LoginPage({ setIsLoggedIn, setUser }) {
                     placeholder="密碼"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(); }}
                 />
                 </div>
                 <div className="form-group">
@@ -64,11 +66,19 @@ function LoginPage({ setIsLoggedIn, setUser }) {
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        記住我
+                        Remember Me
                     </label>
                 </div>
             <button onClick={handleLogin}>登入</button>
             {message && <p>{message}</p>}
+            <div style={{ marginTop: '1rem' }}>
+                <p>
+                還沒有帳號？{' '}
+                <Link to="/register" style={{ color: '#007bff', textDecoration: 'none' }}>
+                    註冊
+                </Link>
+                </p>
+            </div>
         </div>
     );
 }
