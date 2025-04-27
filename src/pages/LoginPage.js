@@ -31,7 +31,7 @@ function LoginPage({ setIsLoggedIn, setUser }) {
             }
     
             setIsLoggedIn(true);
-            setUser({ username: username, name: data.name });
+            setUser({ username: username, name: data.name, avatar: data.avatar });
             setMessage('登入成功！');
             navigate('/notebook');
         } else {
