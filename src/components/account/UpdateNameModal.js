@@ -1,4 +1,3 @@
-// src/components/account/UpdateName.js
 import React, { useState } from 'react';
 
 export default function UpdateName({ setUser }) {
@@ -47,16 +46,17 @@ export default function UpdateName({ setUser }) {
   return (
     <div style={{ marginBottom: '20px' }}>
       <h3>修改名字</h3>
-      <input
-        type="text"
-        placeholder="輸入新名字"
-        value={newName}
-        onChange={(e) => setNewName(e.target.value)}
-        style={{ padding: '5px', marginRight: '10px' }}
-      />
-      <button onClick={handleUpdateName} disabled={loading}>
-        {loading ? '修改中...' : '送出'}
-      </button>
+      <div className="input-group">
+        <input
+          type="text"
+          placeholder="輸入新名字"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+        />
+        <button onClick={handleUpdateName} disabled={loading} className="primary-btn">
+          {loading ? '修改中...' : '送出'}
+        </button>
+      </div>
     </div>
   );
 }

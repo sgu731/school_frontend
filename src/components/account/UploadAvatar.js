@@ -1,10 +1,9 @@
-// src/components/account/UploadAvatar.js
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 export default function UploadAvatar({ user, setUser }) {
   const [preview, setPreview] = useState(user?.avatar || ''); 
   const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -48,18 +47,33 @@ export default function UploadAvatar({ user, setUser }) {
   };
 
   return (
-    <div style={{ margin: '20px 0' }}>
+    <div className="upload-section">
       <h3>上傳大頭貼</h3>
+
       {preview && (
         <div style={{ marginBottom: '10px' }}>
           <img src={preview} alt="預覽" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '50%' }} />
         </div>
       )}
 
-      <input type="file" accept="image/*" onChange={handleFileChange} />
+      {/* 隱藏的檔案input */}
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        style={{ display: 'none' }}
+      />
+
+      {/* 用label做漂亮按鈕 */}
+      <label className="select-file-btn" onClick={() => fileInputRef.current.click()}>
+        選擇檔案
+      </label>
 
       <div style={{ marginTop: '10px' }}>
-        <button onClick={handleUpload}>上傳</button>
+        <button onClick={handleUpload} className="upload-btn">
+          上傳照片
+        </button>
       </div>
     </div>
   );
