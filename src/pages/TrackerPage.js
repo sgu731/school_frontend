@@ -19,6 +19,8 @@ const TrackerPage = () => {
   const [records, setRecords] = useState([]);
   const [weekStart, setWeekStart] = useState(getWeekStart());
   const [filterSubj, setFilterSubj] = useState('');
+  const [startHour, setStartHour] = useState(8);
+  const [endHour, setEndHour] = useState(23);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -51,6 +53,12 @@ const TrackerPage = () => {
         setPieData(Object.entries(pieMap).map(([name, value]) => ({ name, value })));
       });
   }, []);
+
+  useEffect(() => {
+    if (startHour > endHour) {
+      setEndHour(startHour);
+    }
+  }, [startHour]);  
 
   const weekSlots = useMemo(() => {
     const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 3600 * 1000);
@@ -114,6 +122,26 @@ const TrackerPage = () => {
         </div>
       </div>
 
+      <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div>
+          <label style={{ marginRight: '0.3rem' }}>開始時間：</label>
+          <select value={startHour} onChange={(e) => setStartHour(parseInt(e.target.value))}>
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label style={{ marginRight: '0.3rem' }}>結束時間：</label>
+          <select value={endHour} onChange={(e) => setEndHour(parseInt(e.target.value))}>
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* 篩選下拉 */}
       <div style={{ marginTop:'1rem', width:'100%', textAlign:'center' }}>
         <label htmlFor="filterSubj" style={{ marginRight:'0.5rem' }}>顯示科目：</label>
@@ -129,18 +157,49 @@ const TrackerPage = () => {
       </div>
 
       <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', gridAutoRows: '20px', border: '1px solid #ddd' }}>
-        {Array.from({ length: 24 }).map((_, h) => (
-          <div key={h} style={{ gridColumn: 1, gridRow: `${h * 2 + 1} / span 2`, borderBottom: '1px solid #f5f5f5', fontSize: 10, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>{`${('0' + h).slice(-2)}:00`}</div>
+      
+        {Array.from({ length: endHour - startHour + 1 }).map((_, i) => {
+          const h = startHour + i;
+          return (
+            <div key={h} style={{ gridColumn: 1, gridRow: `${i * 2 + 1} / span 2`, borderBottom: '1px solid #f5f5f5', fontSize: 10, display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+              {`${('0' + h).slice(-2)}:00`}
+            </div>
+          );
+        })}
+
+        {Array.from({ length: (endHour - startHour + 1) * 2 * 7 }).map((_, i) => (
+          <div key={`bg-${i}`} style={{ borderBottom: '1px solid #f5f5f5' }} />
         ))}
 
-        {Array.from({ length: 48 * 7 }).map((_, i) => <div key={`bg-${i}`} style={{ borderBottom: '1px solid #f5f5f5' }} />)}
-
-        {weekSlots.map((s, i) => (
-          <div key={i} style={{ gridColumn: s.col + 2, gridRow: `${s.rowStart + 1} / span ${s.span}`, background: subjectColorMap[s.subject], color: '#fff', fontSize: 10, padding: 2, borderRadius: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <div>{s.subject}</div>
-            <div>{s.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–{s.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-          </div>
+        {weekSlots
+          .filter(s => {
+            const row = s.rowStart;
+            const minRow = startHour * 2;
+            const maxRow = (endHour + 1) * 2;
+            return row >= minRow && row < maxRow;
+          })
+          .map((s, i) => (
+            <div
+              key={i}
+              style={{
+                gridColumn: s.col + 2,
+                gridRow: `${s.rowStart - startHour * 2 + 1} / span ${s.span}`,
+                background: subjectColorMap[s.subject],
+                color: '#fff',
+                fontSize: 10,
+                padding: 2,
+                borderRadius: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <div>{s.subject}</div>
+              <div>{s.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–{s.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
         ))}
+
       </div>
 
       {/* Legend */}

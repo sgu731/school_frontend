@@ -11,6 +11,8 @@ const PlanPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [modalData, setModalData] = useState(null);
+  const [startHour, setStartHour] = useState(8);
+  const [endHour, setEndHour] = useState(23);
 
   const getWeekDates = useCallback((date) => {
     const startOfWeek = new Date(date);
@@ -59,12 +61,21 @@ const PlanPage = () => {
     fetchSubjects();
   }, []);
 
-  const timeSlots = Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2);
-    const minute = i % 2 === 0 ? '00' : '30';
-    return `${hour.toString().padStart(2, '0')}:${minute}`;
-  });
-
+  useEffect(() => {
+    if (startHour > endHour) {
+      setEndHour(startHour);
+    }
+  }, [startHour]);
+  
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let h = startHour; h <= endHour; h++) {
+      slots.push(`${h.toString().padStart(2, '0')}:00`);
+      slots.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    return slots;
+  }, [startHour, endHour]);
+  
   const toMinutes = (timeStr) => {
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
@@ -161,7 +172,26 @@ const PlanPage = () => {
           dateFormat="yyyy/MM/dd"
         />
         <button onClick={handleAddPlan} style={{ marginLeft: '1rem' }}>➕ 新增計畫</button>
-      </div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label>開始時間：</label>
+            <select value={startHour} onChange={(e) => setStartHour(parseInt(e.target.value))}>
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label>結束時間：</label>
+            <select value={endHour} onChange={(e) => setEndHour(parseInt(e.target.value))}>
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>{i.toString().padStart(2, '0')}:00</option>
+              ))}
+            </select>
+          </div>
+        </div>
+              </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '80px repeat(7, 150px)', border: '1px solid #ccc', boxSizing: 'border-box', overflowX: 'auto', width: 'fit-content', margin: '0 auto' }}>
         <div></div>
