@@ -18,6 +18,9 @@ import NoteDetail from "./pages/NoteDetail";
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
 import RegisterPage from './pages/RegisterPage';
+import GalleryPage from './components/GalleryPage';
+import NoteDetailPage from './components/NoteDetailPage';
+import RecordingDetail from './components/RecordingDetail'; 
 
 const queryClient = new QueryClient();
 
@@ -86,6 +89,7 @@ function App() {
                                 <Route path="/register" element={<RegisterPage />} />
                                 <Route path="/notebook" element={<NotebookDashboard />} />
                                 <Route path="/camera" element={<CameraPage />} />
+                                <Route path="/gallery" element={<GalleryPage />} />
                                 <Route path="/voice" element={<VoicePage />} />
                                 <Route path="/rooms" element={<RoomsPage />} />
                                 <Route path="/studyroom" element={<StudyRoom />} />
@@ -95,6 +99,8 @@ function App() {
                                 <Route path="/forum" element={<ForumPage />} />
                                 <Route path="/sharing" element={<SharingPage />} />
                                 <Route path="/sharing/:id"element={<NoteDetail />} />
+                                <Route path="/note-detail" element={<NoteDetailPage />} />
+                                <Route path="/recording-detail" element={<RecordingDetail />} />
                             </Routes>
                         </div>
                     </div>
