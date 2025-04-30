@@ -63,7 +63,7 @@ export default function CameraPage() {
 
   return (
     <div className="p-6 relative">
-      <h1 className="text-2xl font-bold mb-6">相機</h1>
+      <h2 className="text-2xl font-bold mb-6">相機</h2>
 
       {/* 相機畫面 */}
       {isCameraOpen && (

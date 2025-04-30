@@ -21,6 +21,8 @@ import RegisterPage from './pages/RegisterPage';
 import GalleryPage from './components/GalleryPage';
 import NoteDetailPage from './components/NoteDetailPage';
 import RecordingDetail from './components/RecordingDetail'; 
+import TranscribePage from "./components/TranscribePage";
+import RecordingPage from "./components/RecordingPage";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +103,8 @@ function App() {
                                 <Route path="/sharing/:id"element={<NoteDetail />} />
                                 <Route path="/note-detail" element={<NoteDetailPage />} />
                                 <Route path="/recording-detail" element={<RecordingDetail />} />
+                                <Route path="/transcribe" element={<TranscribePage />} />
+                                <Route path="/recording" element={<RecordingPage />} />
                             </Routes>
                         </div>
                     </div>
