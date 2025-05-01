@@ -56,9 +56,19 @@ function NoteListtwo() {
             />
 
             <div className="note-grid">
-                {filteredNotes.map((note) => (
-                    <NoteCard key={note.id} note={note} toggleBookmark={toggleBookmark} />
-                ))}
+                {filteredNotes.map((note) => {
+                    // 🔥 新增：從 localStorage 讀取真實留言數
+                    const savedComments = JSON.parse(localStorage.getItem(`comments-${note.id}`)) || [];
+                    const realCommentCount = savedComments.length;
+
+                    return (
+                        <NoteCard
+                            key={note.id}
+                            note={{ ...note, comments: realCommentCount }} // 用真實留言數覆蓋
+                            toggleBookmark={toggleBookmark}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

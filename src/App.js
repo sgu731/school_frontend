@@ -13,6 +13,8 @@ import TrackerPage from './pages/TrackerPage';
 import PlanPage from './pages/PlanPage';
 // import KnowledgePage from './pages/KnowledgePage';
 import ForumPage from './pages/ForumPage';
+import ThreadDetailPage from './pages/ThreadDetailPage';
+import NewPostPage from './pages/NewPostPage';
 import SharingPage from './pages/SharingPage';
 import NoteDetail from "./pages/NoteDetail";
 import LoginPage from './pages/LoginPage';
@@ -99,6 +101,8 @@ function App() {
                                 <Route path="/plan" element={<PlanPage />} />
                                 {/* <Route path="/knowledge" element={<KnowledgePage />} /> */}
                                 <Route path="/forum" element={<ForumPage />} />
+                                <Route path="/forum/:id" element={<ThreadDetailPage />} />
+                                <Route path="/forum/new" element={<NewPostPage />} />
                                 <Route path="/sharing" element={<SharingPage />} />
                                 <Route path="/sharing/:id"element={<NoteDetail />} />
                                 <Route path="/note-detail" element={<NoteDetailPage />} />

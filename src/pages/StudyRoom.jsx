@@ -40,12 +40,44 @@ export default function StudyRoom() {
         return () => clearInterval(timer);
     }, [isStudying]);
 
-    const toggleStudy = () => {
+    const toggleStudy = async () => {
         if (!isStudying && !selectedSubject) {
             alert("請先選擇科目！");
             return;
         }
-        if (!isStudying) setStartTime(Date.now());
+
+        if (!isStudying) {
+            setStartTime(Date.now());
+        } else {
+            //結束學習時計算總秒數
+            const endTime = Date.now();
+            const durationInSeconds = Math.floor((endTime - startTime) / 1000);
+
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch('http://localhost:5000/api/study/study-records', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        subjectId: findSubjectId(selectedSubject), 
+                        duration: durationInSeconds,
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('✅ 學習紀錄已成功上傳到後端');
+                } else {
+                    console.error('❌ 上傳失敗');
+                }
+            } catch (error) {
+                console.error('❌ 上傳時發生錯誤:', error);
+            }
+        }
+        setStudyTime(0);
+        setSelectedSubject("");  
         setIsStudying(!isStudying);
     };
 
@@ -63,6 +95,17 @@ export default function StudyRoom() {
     });
 
     const activeCount = members.filter((m) => m.online).length;
+    // 模擬 subject name 對應到 id 的表
+    const subjectIdMap = {
+        "C": 1,
+        "Python": 2,
+        "JAVA": 3,
+    };
+
+    const findSubjectId = (subjectName) => {
+        return subjectIdMap[subjectName] || null;
+    };
+
 
     return (
         <div style={{ padding: "2rem" }}>

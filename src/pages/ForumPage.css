@@ -35,3 +35,154 @@
     font-size: 14px;
     color: #666;
 }
+
+.thread-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+}
+
+.thread-author {
+    width: 100px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.avatar-placeholder {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.thread-content {
+    flex: 1;
+}
+
+    .thread-content h3 {
+        margin: 0 0 5px;
+    }
+
+.thread-meta {
+    font-size: 14px;
+    color: #666;
+}
+
+    .thread-meta span {
+        margin-right: 15px;
+    }
+
+.bookmark-icon {
+    cursor: pointer;
+    user-select: none;
+}
+
+.category-bar {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.category-button,
+.bookmark-toggle {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background-color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+    .category-button.active,
+    .bookmark-toggle.active {
+        background-color: #4472c4;
+        color: white;
+        border-color: #4472c4;
+    }
+
+.thread-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 0;
+}
+
+.thread-author {
+    width: 100px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.avatar-placeholder {
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+.thread-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+    .thread-content h3 {
+        margin: 0 0 5px;
+    }
+
+.thread-meta {
+    font-size: 14px;
+    color: #666;
+}
+
+    .thread-meta span {
+        margin-right: 12px;
+    }
+
+.bookmark-icon {
+    font-size: 20px;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+.new-post-button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #4472c4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .new-post-button:hover {
+        background-color: #345aa3;
+    }
+.forum-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.forum-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.new-post-button {
+    padding: 8px 16px;
+    background-color: #4472c4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+    .new-post-button:hover {
+        background-color: #345aa3;
+    }
+

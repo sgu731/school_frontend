@@ -1,0 +1,33 @@
+.new-post-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+    .new-post-container input,
+    .new-post-container textarea,
+    .new-post-container select {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .new-post-container button {
+        padding: 10px 20px;
+        background-color: #4472c4;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+        .new-post-container button:hover {
+            background-color: #345aa3;
+        }
