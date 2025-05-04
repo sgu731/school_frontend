@@ -1,0 +1,71 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 上方橘色橫條 */
+.top-bar {
+  background-color: #F18F39;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.search-bar {
+  flex-grow: 1;
+  margin: 0 20px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.user-icon a {
+  text-decoration: none; 
+  color: inherit;
+  font-size: 24px;
+}
+
+.form-group {
+  margin: 10px 0;
+}
+
+/* 側邊 + 內容 */
+.main-content {
+  display: flex;
+  flex: 1;
+}
+
+/* 左邊選單 */
+.side-menu {
+  background-color: #fff;
+  width: 180px;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.side-menu a {
+  text-decoration: none;
+  color: black;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.side-menu a:hover {
+  color: #F18F39;
+}
+
+/* 右邊頁面內容 */
+.page-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
