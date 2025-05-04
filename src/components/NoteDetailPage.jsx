@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import MermaidRenderer from "./common/MermaidRenderer";
 
 export default function NoteDetailPage() {
   const { state } = useLocation();
@@ -13,7 +14,7 @@ export default function NoteDetailPage() {
   const [content, setContent] = useState(initialContent || "");
   const [selectedText, setSelectedText] = useState("");
   const [toolbarPosition, setToolbarPosition] = useState(null);
-  const [popupMode, setPopupMode] = useState(null);
+  const [analysisResults, setAnalysisResults] = useState([]);
 
   const contentRef = useRef();
   const titleRef = useRef();
@@ -57,20 +58,70 @@ export default function NoteDetailPage() {
     return () => document.removeEventListener("mouseup", handleMouseUp);
   }, []);
 
-  const handleMode = (mode) => {
+  const handleMode = async (mode) => {
     if (!selectedText) return;
-    setPopupMode(mode);
+
+    const promptMap = {
+      "考試模式": `請將以下內容整理成條列式重點，並提供每點的簡要補充說明：\n\n${selectedText}`,
+      "報告模式": `請將以下內容轉換成一份報告圖表：\n\n${selectedText}`,
+      "摘要": `請將以下內容濃縮成簡潔摘要：\n\n${selectedText}`,
+    };
+
+    try {
+      const res = await fetch("http://localhost:8000/analyze/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: `transcription=${encodeURIComponent(selectedText)}&prompt=${encodeURIComponent(promptMap[mode])}`,
+      });
+
+      const result = await res.json();
+      const analysis = result.analysis || "⚠️ 無回應內容";
+
+      setAnalysisResults((prev) => [
+        ...prev,
+        {
+          mode,
+          content: analysis,
+        },
+      ]);
+    } catch (err) {
+      setAnalysisResults((prev) => [
+        ...prev,
+        {
+          mode,
+          content: "⚠️ 發生錯誤，請稍後再試。",
+        },
+      ]);
+    }
   };
 
   const saveChanges = () => {
     const notes = JSON.parse(localStorage.getItem("importedNotes") || "[]");
+
+    const analysisText = analysisResults
+      .map((item) => {
+        if (item.mode === "報告模式") {
+          return `\n\n【${item.mode}】\n\`\`\`mermaid\n${item.content}\n\`\`\``;
+        } else {
+          return `\n\n【${item.mode}】\n${item.content}`;
+        }
+      })
+      .join("");
+
+    const fullContent = content + analysisText;
+
     const updated = notes.map((note) =>
       note.date === date
-        ? { ...note, title, content }
+        ? { ...note, title, content: fullContent }
         : note
     );
+
     localStorage.setItem("importedNotes", JSON.stringify(updated));
-    alert("✅ 筆記已儲存！");
+    alert("✅ 筆記已儲存（包含分析結果）！");
+    setAnalysisResults([]);
   };
 
   const deleteNote = () => {
@@ -98,16 +149,10 @@ export default function NoteDetailPage() {
     <div className="flex flex-col min-h-screen">
       {/* 上方橘色橫條 */}
       <div className="bg-orange-400 p-4 flex items-center justify-between gap-4 relative">
-        {/* 左邊返回 */}
-        <Button
-          variant="ghost"
-          className="flex items-center gap-1"
-          onClick={() => navigate("/notebook")}
-        >
+        <Button variant="ghost" className="flex items-center gap-1" onClick={() => navigate("/notebook")}>
           <ArrowLeft size={18} />
         </Button>
 
-        {/* 中間置中標題 */}
         <div className="flex-1 text-center">
           <input
             ref={titleRef}
@@ -117,7 +162,6 @@ export default function NoteDetailPage() {
           />
         </div>
 
-        {/* 右側儲存＋刪除按鈕 */}
         <div className="flex gap-2">
           <Button variant="destructive" size="sm" onClick={deleteNote}>
             刪除筆記
@@ -128,7 +172,7 @@ export default function NoteDetailPage() {
         </div>
       </div>
 
-      {/* 筆記內容 */}
+      {/* 筆記內容 + 分析 */}
       <div className="flex-1 overflow-auto p-6 bg-gray-50 relative">
         <textarea
           ref={contentRef}
@@ -139,7 +183,7 @@ export default function NoteDetailPage() {
           onInput={autoGrow}
         />
 
-        {/* 浮動選單（智慧浮動＋邊界自適應） */}
+        {/* 浮動選單 */}
         {selectedText && toolbarPosition && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -151,12 +195,9 @@ export default function NoteDetailPage() {
               transform: "translateX(-50%) translateY(-8px)",
             }}
           >
-            {/* 小箭頭 */}
             <div className="w-full flex justify-center">
               <div className="w-3 h-3 rotate-45 bg-white border-l border-t border-gray-300 -mb-1" />
             </div>
-
-            {/* 選單卡片 */}
             <div className="flex rounded-md shadow-md border bg-white text-sm font-medium overflow-hidden">
               {["考試模式", "報告模式", "摘要"].map((mode, index) => (
                 <button
@@ -173,24 +214,24 @@ export default function NoteDetailPage() {
           </motion.div>
         )}
 
-        {/* Popup 彈窗 */}
-        {popupMode && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-            <div className="bg-white p-6 rounded shadow-lg w-96 relative">
-              <h2 className="text-xl font-bold mb-4">{popupMode}</h2>
-              <div className="text-gray-700 whitespace-pre-wrap mb-4">{selectedText}</div>
-              <Button
-                onClick={() => setPopupMode(null)}
-                className="absolute top-2 right-2"
-                size="icon"
-                variant="ghost"
-              >
-                ✖
-              </Button>
-              <div className="flex justify-end">
-                <Button onClick={() => setPopupMode(null)}>關閉</Button>
+        {/* 分析結果呈現 */}
+        {analysisResults.length > 0 && (
+          <div className="mt-6 space-y-4">
+            {analysisResults.map((item, index) => (
+              <div key={index} className="bg-white border border-gray-200 rounded-md p-4">
+                <h3 className="font-semibold mb-2 text-orange-600">{item.mode}</h3>
+                {item.mode === "報告模式" ? (
+                  <>
+                    <MermaidRenderer chart={item.content} />
+                    <pre className="whitespace-pre-wrap text-sm text-green-700 font-mono bg-gray-100 p-3 rounded mt-4">
+                      {item.content}
+                    </pre>
+                  </>
+                ) : (
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800">{item.content}</pre>
+                )}
               </div>
-            </div>
+            ))}
           </div>
         )}
       </div>

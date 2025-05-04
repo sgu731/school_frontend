@@ -213,12 +213,14 @@ export default function VoicePage() {
                   >
                     {rec.title}
                     <Button 
+                      variant="ghost"
+                      size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
                         setEditingId(rec.id);
                         setEditTitle(rec.title);
                       }}
-                      className="ml-1 text-blue-500 hover:text-blue-700"
+                      className="p-0 m-0 bg-transparent hover:bg-transparent text-blue-500 hover:text-blue-700 shadow-none border-none"
                     >
                       <Pencil size={16} />
                     </Button>

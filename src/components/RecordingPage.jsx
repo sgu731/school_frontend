@@ -6,8 +6,6 @@ export default function RecordingPage() {
   const navigate = useNavigate();
   const [recording, setRecording] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [language, setLanguage] = useState("zh-TW");
-  const [enableTranslation, setEnableTranslation] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
   const [transcript, setTranscript] = useState("");
   const [translated, setTranslated] = useState("");
@@ -16,19 +14,7 @@ export default function RecordingPage() {
   const audioChunks = useRef([]);
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
-
-  const translateText = async (text) => {
-    if (!text) return;
-    const response = await fetch(
-      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" +
-        language +
-        "&dt=t&q=" +
-        encodeURIComponent(text)
-    );
-    const data = await response.json();
-    const translatedText = data[0].map((item) => item[0]).join("");
-    setTranslated(translatedText);
-  };
+  const enableTranslationRef = useRef(true); // ✅ 使用 ref 控制翻譯勾選狀態
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -52,15 +38,45 @@ export default function RecordingPage() {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = language;
+      recognitionRef.current.lang = "zh-TW";
 
       recognitionRef.current.onresult = (e) => {
-        let result = "";
+        let finalTranscript = "";
+
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-          result += e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            finalTranscript += e.results[i][0].transcript;
+          }
         }
-        setTranscript((prev) => prev + result);
-        if (enableTranslation) translateText(result);
+
+        if (finalTranscript) {
+          setTranscript((prev) => prev + finalTranscript);
+
+          if (enableTranslationRef.current) {
+            (async () => {
+              try {
+                const detectRes = await fetch(
+                  "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-TW&dt=t&q=" +
+                    encodeURIComponent(finalTranscript)
+                );
+                const detectData = await detectRes.json();
+                const sourceLang = detectData[2];
+                const targetLang = sourceLang.startsWith("zh") ? "en" : "zh-TW";
+
+                if (sourceLang.startsWith(targetLang.slice(0, 2))) return;
+
+                const transRes = await fetch(
+                  `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(finalTranscript)}`
+                );
+                const transData = await transRes.json();
+                const translatedText = transData[0].map((item) => item[0]).join("");
+                setTranslated((prev) => prev + translatedText);
+              } catch (err) {
+                console.error("翻譯失敗：", err);
+              }
+            })();
+          }
+        }
       };
 
       recognitionRef.current.start();
@@ -168,19 +184,13 @@ export default function RecordingPage() {
               <label className="text-sm flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={enableTranslation}
-                  onChange={() => setEnableTranslation(!enableTranslation)}
+                  defaultChecked={enableTranslationRef.current}
+                  onChange={(e) => {
+                    enableTranslationRef.current = e.target.checked;
+                  }}
                 />
-                啟用即時翻譯
+                啟用即時翻譯（自動中英互譯）
               </label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="border p-2 rounded"
-              >
-                <option value="zh-TW">中文</option>
-                <option value="en-US">英文</option>
-              </select>
             </div>
           </>
         )}
@@ -188,7 +198,7 @@ export default function RecordingPage() {
 
       {recording && (
         <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <p className="text-sm text-gray-500 mb-2">語音辨識中...</p>
+          <p className="text-sm text-gray-500 mb-2">🗣 即時語音：</p>
           <p className="whitespace-pre-wrap">{transcript}</p>
           <p className="text-sm text-gray-500 mb-2">🌐 即時翻譯：</p>
           <p className="text-green-700 whitespace-pre-wrap mb-4">{translated}</p>

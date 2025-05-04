@@ -101,6 +101,33 @@ function TranscribePage() {
                     }}>
                         {formatTranscription(transcription, source)}
                     </pre>
+
+                    <button
+                      style={{
+                        marginTop: '12px',
+                        padding: '8px 16px',
+                        backgroundColor: '#3b82f6',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        const notes = JSON.parse(localStorage.getItem("importedNotes") || "[]");
+                        const now = new Date().toISOString();
+                        const newNote = {
+                          title: `語音轉錄筆記`,
+                          content: formatTranscription(transcription, source),
+                          date: now,
+                          updatedAt: now,
+                        };
+                        const updatedNotes = [newNote, ...notes];
+                        localStorage.setItem("importedNotes", JSON.stringify(updatedNotes));
+                        alert("已將轉錄結果加入筆記！");
+                      }}
+                    >
+                      加入筆記
+                    </button>
                 </div>
             )}
             {error && <p style={{ color: 'red' }}>{error}</p>}
