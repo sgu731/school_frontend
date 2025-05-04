@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
 import axios from 'axios';
 import './RoomsPage.css';
 
@@ -8,11 +7,6 @@ function RoomsPage() {
     // 重要
     const token = localStorage.getItem('token');
 
-=======
-import './RoomsPage.css';
-
-function RoomsPage() {
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
     const [roomName, setRoomName] = useState('');
     const [allRooms, setAllRooms] = useState([]);
     const [currentRoom, setCurrentRoom] = useState(null);
@@ -20,7 +14,6 @@ function RoomsPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-<<<<<<< HEAD
         const fetchRooms = async () => {
             try {
                 console.log('Fetching rooms with token:', token);
@@ -229,15 +222,6 @@ function RoomsPage() {
 
     // 假設 token 已解碼且包含 userId（需後端支援）
     const userId = token ? JSON.parse(atob(token.split('.')[1])).userId : null;
-=======
-        setAllRooms([
-            { id: 1, name: "Room A", creator_name: "Tina", online: true },
-            { id: 2, name: "Room B", creator_name: "Toby", online: false },
-            { id: 3, name: "Room C", creator_name: "Teresa", online: false },
-        ]);
-        setCurrentRoom({ id: 1, name: "Room A", creator_name: "Tina" });
-    }, []);
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 
     return (
         <div style={{ padding: "2rem" }}>
@@ -251,17 +235,12 @@ function RoomsPage() {
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
                 />
-<<<<<<< HEAD
                 <button onClick={handleCreateRoom}>創建自習室</button>
-=======
-                <button onClick={() => alert("此功能尚未實作")}>創建自習室</button>
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
             </div>
 
             <div>
                 <h3>自習室列表</h3>
                 <div style={{ display: "grid", gap: "1rem" }}>
-<<<<<<< HEAD
                     {allRooms.length > 0 ? (
                         allRooms.map((room) => (
                             <div
@@ -295,22 +274,6 @@ function RoomsPage() {
                     ) : (
                         <p>尚無自習室</p>
                     )}
-=======
-                    {allRooms.map((room) => (
-                        <div key={room.id} className="room-card">
-                            <div className="room-info">
-                                <div className={`status-dot ${room.online ? "status-online" : "status-offline"}`}></div>
-                                <span>{room.name}</span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                <span style={{ fontSize: "0.9rem", color: "#555" }}>房主: {room.creator_name}</span>
-                                <button className="enter-btn" onClick={() => navigate("/studyroom")}>
-                                    進入房間
-                                </button>
-                            </div>
-                        </div>
-                    ))}
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
                 </div>
             </div>
 
@@ -318,7 +281,6 @@ function RoomsPage() {
                 <div style={{ marginTop: "2rem" }}>
                     <h3>你目前的房間</h3>
                     <p>
-<<<<<<< HEAD
                         你目前在: <strong>{currentRoom.name}</strong> (房主: {currentRoom.creator_name}, 狀態: {getStatusName(currentRoom.status)})
                     </p>
                     <button
@@ -331,20 +293,8 @@ function RoomsPage() {
             )}
 
             {message && <p style={{ color: message.includes('成功') || message.includes('取消') ? 'green' : 'red' }}>{message}</p>}
-=======
-                        你目前在: <strong>{currentRoom.name}</strong> (房主: {currentRoom.creator_name})
-                    </p>
-                </div>
-            )}
-
-            {message && <p>{message}</p>}
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
         </div>
     );
 }
 
-<<<<<<< HEAD
 export default RoomsPage;
-=======
-export default RoomsPage;
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de

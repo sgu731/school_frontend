@@ -11,15 +11,9 @@
     align-items: center;
 }
 
-<<<<<<< HEAD
 .room-card:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-=======
-    .room-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 
 .room-info {
     display: flex;
@@ -33,7 +27,6 @@
     margin-right: 8px;
 }
 
-<<<<<<< HEAD
 .status-0 {
     background-color: #dc3545; /* 離線: 紅色 */
 }
@@ -44,14 +37,6 @@
 
 .status-2 {
     background-color: #ffc107; /* 維護中: 黃色 */
-=======
-.status-online {
-    background-color: #00c853; /* ��� */
-}
-
-.status-offline {
-    background-color: #d32f2f; /* ���� */
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 }
 
 .enter-btn {
@@ -65,13 +50,8 @@
 }
 
 .enter-btn:hover {
-<<<<<<< HEAD
     background-color: #ef6c00;
 }
-=======
-        background-color: #ef6c00;
-    }
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 
 .back-btn {
     background-color: #eeeeee;
@@ -84,16 +64,10 @@
     transition: background-color 0.2s ease;
 }
 
-<<<<<<< HEAD
 .back-btn:hover {
     background-color: #dcdcdc;
 }
 
-=======
-    .back-btn:hover {
-        background-color: #dcdcdc;
-    }
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 .studyroom-banner {
     background-color: #f2e3d5;
     color: #5b4636;
@@ -104,7 +78,6 @@
     border: 1px solid #e0cfc2;
 }
 
-<<<<<<< HEAD
 .studyroom-banner .tagline {
     
     color: #7b5d4b;
@@ -114,17 +87,6 @@
     font-size: 0.85rem;
     color: #a88778;
 }
-=======
-    .studyroom-banner .tagline {
-        
-        color: #7b5d4b;
-    }
-
-    .studyroom-banner .date {
-        font-size: 0.85rem;
-        color: #a88778;
-    }
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
 
 .member-modal {
     position: fixed;
@@ -185,7 +147,6 @@ textarea {
     border-radius: 20px;
     cursor: pointer;
 }
-<<<<<<< HEAD
 
 .current-room {
     border: 2px solid #28a745; /* 綠色邊框表示當前房間 */
@@ -217,5 +178,3 @@ textarea {
 .delete-btn:hover {
     background-color: #5a6268;
 }
-=======
->>>>>>> 3fc4797a554e9eb30a3fa40b278e95985965f8de
