@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import MermaidRenderer from "./common/MermaidRenderer";
+import axios from "axios";
 
 export default function NoteDetailPage() {
   const { state } = useLocation();
@@ -15,6 +16,8 @@ export default function NoteDetailPage() {
   const [selectedText, setSelectedText] = useState("");
   const [toolbarPosition, setToolbarPosition] = useState(null);
   const [analysisResults, setAnalysisResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const contentRef = useRef();
   const titleRef = useRef();
@@ -67,19 +70,18 @@ export default function NoteDetailPage() {
       "摘要": `請將以下內容濃縮成簡潔摘要：\n\n${selectedText}`,
     };
 
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    setError("");
+
     try {
-      const res = await fetch("http://localhost:8000/analyze/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: `transcription=${encodeURIComponent(selectedText)}&prompt=${encodeURIComponent(promptMap[mode])}`,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/ai/analyze",
+        { text: selectedText, prompt: promptMap[mode] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-      const result = await res.json();
-      const analysis = result.analysis || "⚠️ 無回應內容";
-
+      const analysis = response.data.analysis || "⚠️ 無回應內容";
       setAnalysisResults((prev) => [
         ...prev,
         {
@@ -88,13 +90,18 @@ export default function NoteDetailPage() {
         },
       ]);
     } catch (err) {
+      const errorMessage = `分析失敗：${err.response?.data?.error || err.message}`;
+      setError(errorMessage);
       setAnalysisResults((prev) => [
         ...prev,
         {
           mode,
-          content: "⚠️ 發生錯誤，請稍後再試。",
+          content: `⚠️ ${errorMessage}`,
         },
       ]);
+      setTimeout(() => setError(""), 2000);
+    } finally {
+      setLoading(false);
     }
   };
 
