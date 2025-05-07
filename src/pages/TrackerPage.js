@@ -223,7 +223,6 @@ const TrackerPage = () => {
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ textAlign: 'left' }}>成效追蹤</h2>
-                <button onClick={fetchStudyRecords} style={{ padding: '6px 12px', fontSize: '0.9rem' }}>🔄 立即刷新資料</button>
             </div>
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '400px' }}>

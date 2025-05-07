@@ -80,7 +80,7 @@ export default function UserProfile({ user, setUser, setIsLoggedIn }) {
       </div>
 
       {/* 修改密碼 */}
-      <div className="section">
+      <div className="input-group">
         <button onClick={() => setShowChangePassword(true)} className="primary-btn">
           修改密碼
         </button>
