@@ -73,6 +73,7 @@ export default function UserProfile({ user, setUser, setIsLoggedIn }) {
           placeholder="輸入新名字"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
+          style={{ marginRight: '8px' }}
         />
         <button onClick={handleUpdateName} className="primary-btn">
           修改名字
@@ -87,12 +88,12 @@ export default function UserProfile({ user, setUser, setIsLoggedIn }) {
       </div>
       {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
 
-      {/* 刪除帳號（待做） */}
+      {/* 刪除帳號（待做）
       <div className="section">
         <button onClick={() => alert('刪除帳號（待做）')} className="secondary-btn">
           刪除帳號
         </button>
-      </div>
+      </div> */}
 
       {/* 登出 */}
       <div className="section">

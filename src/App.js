@@ -38,6 +38,27 @@ function App() {
     const [showEditNameModal, setShowEditNameModal] = useState(false);
     const [newName, setNewName] = useState('');
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          fetch('http://localhost:5000/profile', {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.user) {
+                setIsLoggedIn(true);
+                setUser(data.user);
+              }
+            })
+            .catch(err => {
+              console.error('取得使用者資料失敗', err);
+            });
+        }
+      }, []);      
+
     return (
         <QueryClientProvider client={queryClient}>
             <Router>
