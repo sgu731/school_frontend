@@ -25,6 +25,9 @@ import NoteDetailPage from './components/NoteDetailPage';
 import RecordingDetail from './components/RecordingDetail'; 
 import TranscribePage from "./components/TranscribePage";
 import RecordingPage from "./components/RecordingPage";
+import ResetPasswordPage from './components/account/ResetPasswordPage';
+import ForgotPasswordPage from './components/account/ForgotPasswordPage';
+import StudyTimerTestPage from './pages/StudyTimerTestPage';
 
 const queryClient = new QueryClient();
 
@@ -82,6 +85,7 @@ function App() {
                             <Link to="/forum">討論區</Link>
                             <Link to="/sharing">筆記分享</Link>
                             <Link to="/plan">讀書計畫</Link>
+                            <Link to="/study-test">讀書計時測試</Link>
                         </nav>
 
                         <div className="page-content">
@@ -109,6 +113,9 @@ function App() {
                                 <Route path="/recording-detail" element={<RecordingDetail />} />
                                 <Route path="/transcribe" element={<TranscribePage />} />
                                 <Route path="/recording" element={<RecordingPage />} />
+                                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                                <Route path="/study-test" element={<StudyTimerTestPage />} />
                             </Routes>
                         </div>
                     </div>
