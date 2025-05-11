@@ -20,7 +20,7 @@
 
     .new-post-container button {
         padding: 10px 20px;
-        background-color: #4472c4;
+        background-color: #f18f39;
         color: white;
         font-weight: bold;
         border: none;
@@ -29,5 +29,5 @@
     }
 
         .new-post-container button:hover {
-            background-color: #345aa3;
+            background-color: #f59e0b;
         }

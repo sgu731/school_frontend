@@ -2,37 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ThreadDetailPage.css";
 
-// 原本假資料，現在只當初始資料用
-const initialThreads = {
-    1: {
-        author: "人中人",
-        title: "Python 問題請教",
-        content: "請問 Python 裡面 for loop 裡的 else 是怎麼用的？",
-        replies: [
-            { id: 1, author: "回覆者A", text: "else 是 for loop 結束時才會執行的！" },
-            { id: 2, author: "回覆者B", text: "如果 loop 有 break，就不會進入 else。" }
-        ],
-        favorites: 10,
-        date: "2024 / 01 / 01"
-    },
-    2: {
-        author: "人上人",
-        title: "微積分問題請教",
-        content: "求導數一定要用極限定義嗎？",
-        replies: [{ id: 1, author: "回覆者C", text: "一開始學是用極限，後來會有公式快速做！" }],
-        favorites: 20,
-        date: "2023 / 10 / 09"
-    },
-    3: {
-        author: "人上人",
-        title: "供需法則怎麼看",
-        content: "想問供需法則有沒有例外情況？",
-        replies: [{ id: 1, author: "回覆者D", text: "有些商品是非典型的，比如奢侈品。" }],
-        favorites: 5,
-        date: "2023 / 10 / 09"
-    }
-};
-
 export default function ThreadDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -40,35 +9,75 @@ export default function ThreadDetailPage() {
 
     const [thread, setThread] = useState(null);
     const [newReply, setNewReply] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    // 載入討論串
+    // 載入討論串資料（含留言）
     useEffect(() => {
-        const storedThreads = JSON.parse(localStorage.getItem("threads")) || initialThreads;
-        setThread(storedThreads[id]);
+        fetch(`http://localhost:5000/api/forum/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("找不到貼文");
+                return res.json();
+            })
+            .then(data => {
+                setThread(data);
+                setError("");
+            })
+            .catch(err => {
+                console.error("載入討論串失敗", err);
+                setError("❌ 找不到這篇討論串！");
+            })
+            .finally(() => setLoading(false));
     }, [id]);
 
-    // 每次留言更新後，滑到最下面
+    // 滑動到留言區底部
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [thread]);
 
-    const handleAddReply = () => {
+    // 送出留言
+    const handleAddReply = async () => {
         if (newReply.trim() === "") return;
 
-        const updatedThread = {
-            ...thread,
-            replies: [...thread.replies, { id: thread.replies.length + 1, author: "你", text: newReply }]
-        };
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("請先登入才能留言！");
+            return;
+        }
 
-        const storedThreads = JSON.parse(localStorage.getItem("threads")) || initialThreads;
-        storedThreads[id] = updatedThread;
-        localStorage.setItem("threads", JSON.stringify(storedThreads));
+        try {
+            const res = await fetch(`http://localhost:5000/api/forum/${id}/reply`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ text: newReply })
+            });
 
-        setThread(updatedThread);
-        setNewReply("");
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || "留言失敗");
+
+            const newComment = result.reply || result;
+
+            if (!newComment || !newComment.author || !newComment.text) {
+                throw new Error("回傳格式錯誤");
+            }
+
+            setThread(prev => ({
+                ...prev,
+                replies: [...(prev.replies || []), newComment]
+            }));
+
+            setNewReply("");
+        } catch (err) {
+            console.error("送出留言失敗", err);
+            alert("❌ 無法送出留言：" + err.message);
+        }
     };
 
-    if (!thread) return <div>找不到這篇討論串！</div>;
+    if (loading) return <div>載入中...</div>;
+    if (error) return <div>{error}</div>;
 
     return (
         <div className="thread-detail-container">
@@ -82,7 +91,7 @@ export default function ThreadDetailPage() {
 
             <h3>留言區</h3>
             <div className="replies">
-                {thread.replies.map((reply) => (
+                {(thread.replies || []).map((reply) => (
                     <div key={reply.id} className="reply">
                         <div className="avatar">👤</div>
                         <div className="bubble">

@@ -1,300 +1,237 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
-import './RoomsPage.css';
+import "./RoomsPage.css";
 
-function RoomsPage() {
-    // 重要
-    const token = localStorage.getItem('token');
-
-    const [roomName, setRoomName] = useState('');
-    const [allRooms, setAllRooms] = useState([]);
-    const [currentRoom, setCurrentRoom] = useState(null);
-    const [message, setMessage] = useState('');
+export default function StudyRoom() {
     const navigate = useNavigate();
+    const [roomInfo, setRoomInfo] = useState({});
+    const [members, setMembers] = useState([]);
+    const [isStudying, setIsStudying] = useState(false);
+    const [studyTime, setStudyTime] = useState(0);
+    const [selectedSubject, setSelectedSubject] = useState("");
+    const [startTime, setStartTime] = useState(null);
+    const [selectedMember, setSelectedMember] = useState(null);
+    const [messageText, setMessageText] = useState("");
+    const [subjectList, setSubjectList] = useState([]);
+    const [newSubject, setNewSubject] = useState("");
 
     useEffect(() => {
-        const fetchRooms = async () => {
+        const fetchRoomInfo = async () => {
+            const token = localStorage.getItem("token");
             try {
-                console.log('Fetching rooms with token:', token);
-                
-                // 獲取所有房間
-                const allResponse = await axios.get('http://localhost:5000/api/rooms/all', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch("http://localhost:5000/api/rooms/current", {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
-                
-                // 獲取當前房間
-                const currentResponse = await axios.get('http://localhost:5000/api/rooms/current', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                console.log('All rooms response:', allResponse.data);
-                console.log('Current room response:', currentResponse.data);
-
-                if (allResponse.data.success) {
-                    setAllRooms(allResponse.data.rooms || []);
-                } else {
-                    setMessage('無法載入房間列表：' + (allResponse.data.error || '未知錯誤'));
-                }
-
-                if (currentResponse.data.success) {
-                    setCurrentRoom(currentResponse.data.room || null);
-                } else {
-                    setMessage('無法載入當前房間：' + (currentResponse.data.error || '未知錯誤'));
+                const data = await res.json();
+                if (data.success && data.room) {
+                    setRoomInfo(data.room);
                 }
             } catch (err) {
-                console.error('Fetch rooms error:', err);
-                setMessage('無法載入房間：' + (err.response?.data?.error || err.message));
+                console.error("取得房間資訊失敗", err);
             }
         };
-        if (token) {
-            fetchRooms();
-        }
-    }, [token]);
 
-    const handleCreateRoom = async () => {
-        if (!roomName) {
-            setMessage('請輸入房間名稱');
-            return;
-        }
+        fetchRoomInfo();
+    }, []);
 
-        // 檢查是否已在房間或已創建其他房間
-        try {
-            // 獲取使用者創建的房間
-            const createdResponse = await axios.get('http://localhost:3000/api/rooms/created', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
 
-            if (!createdResponse.data.success) {
-                setMessage('無法檢查創建的房間：' + (createdResponse.data.error || '未知錯誤'));
-                return;
-            }
-
-            const createdRooms = createdResponse.data.rooms || [];
-            let confirmMessage = '';
-
-            if (currentRoom || createdRooms.length > 0) {
-                if (currentRoom && createdRooms.length > 0) {
-                    confirmMessage = `你目前在房間 "${currentRoom.name}" 且已創建房間 "${createdRooms[0].name}"。創建新房間將退出當前房間並覆蓋舊房間，是否繼續？`;
-                } else if (currentRoom) {
-                    confirmMessage = `你目前在房間 "${currentRoom.name}"。創建新房間將退出當前房間，是否繼續？`;
-                } else {
-                    confirmMessage = `你已創建房間 "${createdRooms[0].name}"。創建新房間將退出舊房間，是否繼續？`;
-                }
-
-                if (!window.confirm(confirmMessage)) {
-                    setMessage('已取消創建房間');
-                    return;
-                }
-            }
-        } catch (err) {
-            setMessage('檢查房間狀態失敗：' + (err.response?.data?.error || err.message));
-            return;
-        }
-
-        try {
-            const response = await axios.post(
-                'http://localhost:5000/api/rooms',
-                { name: roomName },
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            if (response.data.success) {
-                setAllRooms([...allRooms, response.data.room]);
-                setCurrentRoom(response.data.room);
-                setRoomName('');
-                setMessage('房間創建成功');
-            } else {
-                setMessage('創建房間失敗：' + (response.data.error || '未知錯誤'));
-            }
-        } catch (err) {
-            setMessage('創建房間失敗：' + (err.response?.data?.error || err.message));
-        }
-    };
-
-    const handleJoinRoom = async (roomId) => {
-        // 檢查 roomId 是否有效
-        if (!roomId || isNaN(roomId) || roomId <= 0) {
-            setMessage('請選擇有效的房間');
-            return;
-        }
-
-        // 檢查是否已在當前房間
-        if (currentRoom && currentRoom.id === roomId) {
-            setMessage('你已在這個房間');
-            return;
-        }
-
-        // 如果已在其他房間，顯示確認對話框
-        if (currentRoom) {
-            const confirmMessage = `你目前在房間 "${currentRoom.name}"。加入新房間將退出當前房間，是否繼續？`;
-            if (!window.confirm(confirmMessage)) {
-                setMessage('已取消加入新房間');
-                return;
-            }
-        }
-
-        try {
-            const response = await axios.post(
-                `http://localhost:5000/api/rooms/${roomId}/join`,
-                {},
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            if (response.data.success) {
-                // 獲取最新當前房間
-                const currentResponse = await axios.get('http://localhost:5000/api/rooms/current', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch("http://localhost:5000/api/study/courses", {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 });
-                if (currentResponse.data.success) {
-                    setCurrentRoom(currentResponse.data.room || null);
+                const data = await res.json();
+                if (data.success) {
+                    setSubjectList(data.courses);
+                }
+            } catch (err) {
+                console.error("取得科目失敗", err);
+            }
+        };
+        fetchSubjects();
+    }, []);
+
+    useEffect(() => {
+        let timer;
+        if (isStudying) {
+            timer = setInterval(() => {
+                setStudyTime((prev) => prev + 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [isStudying]);
+
+    const handleAddSubject = async () => {
+        if (!newSubject.trim()) return;
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch("http://localhost:5000/api/study/courses", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ courseName: newSubject }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSubjectList([...subjectList, data.course]);
+                setNewSubject("");
+            }
+        } catch (err) {
+            console.error("新增科目失敗", err);
+        }
+    };
+
+    const toggleStudy = async () => {
+        if (!isStudying && !selectedSubject) {
+            alert("請先選擇科目！");
+            return;
+        }
+
+        if (!isStudying) {
+            setStartTime(Date.now());
+        } else {
+            const endTime = Date.now();
+            const durationInSeconds = Math.floor((endTime - startTime) / 1000);
+
+            try {
+                const token = localStorage.getItem("token");
+                const response = await fetch('http://localhost:5000/api/study/study-records', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        subjectName: selectedSubject,
+                        duration: durationInSeconds,
+                    }),
+                });
+                if (response.ok) {
+                    console.log('✅ 學習紀錄已成功上傳到後端');
                 } else {
-                    setMessage('無法更新當前房間：' + (currentResponse.data.error || '未知錯誤'));
-                    return;
+                    console.error('❌ 上傳失敗');
                 }
-                setMessage('成功進入房間');
-                navigate('/studyroom');
-            } else {
-                setMessage('進入房間失敗：' + (response.data.error || '未知錯誤'));
+            } catch (error) {
+                console.error('❌ 上傳時發生錯誤:', error);
             }
-        } catch (err) {
-            setMessage('進入房間失敗：' + (err.response?.data?.error || err.message));
         }
+
+        setStudyTime(0);
+        setSelectedSubject("");
+        setIsStudying(!isStudying);
     };
 
-    const handleLeaveRoom = async () => {
-        if (!currentRoom) {
-            setMessage('你不在任何房間');
-            return;
-        }
-
-        try {
-            const response = await axios.delete(
-                'http://localhost:5000/api/rooms/leave',
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            if (response.data.success) {
-                setCurrentRoom(null);
-                setMessage('成功退出房間');
-            } else {
-                setMessage('退出房間失敗：' + (response.data.error || '未知錯誤'));
-            }
-        } catch (err) {
-            setMessage('退出房間失敗：' + (err.response?.data?.error || err.message));
-        }
+    const formatTime = (seconds) => {
+        const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+        const s = String(seconds % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
     };
 
-    // 根據 status 值顯示狀態名稱
-    const getStatusName = (status) => {
-        switch (status) {
-            case 0: return '離線';
-            case 1: return '線上';
-            case 2: return '私密';
-            default: return '未知';
-        }
-    };
+    const today = new Date().toLocaleDateString("zh-TW", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
 
-    const handleDeleteRoom = async (roomId, roomName) => {
-        const confirmMessage = `確定要刪除房間 "${roomName}"？這將清空房內所有成員。`;
-        if (!window.confirm(confirmMessage)) {
-            setMessage('已取消刪除房間');
-            return;
-        }
-
-        try {
-            const response = await axios.delete(
-                'http://localhost:5000/api/rooms/${roomId}',
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            );
-            if (response.data.success) {
-                // 更新房間列表
-                setAllRooms(allRooms.filter(room => room.id !== roomId));
-                // 如果刪除的是當前房間，清空 currentRoom
-                if (currentRoom && currentRoom.id === roomId) {
-                    setCurrentRoom(null);
-                }
-                setMessage('房間刪除成功');
-            } else {
-                setMessage('刪除房間失敗：' + (response.data.error || '未知錯誤'));
-            }
-        } catch (err) {
-            setMessage('刪除房間失敗：' + (err.response?.data?.error || err.message));
-        }
-    };    
-
-    // 假設 token 已解碼且包含 userId（需後端支援）
-    const userId = token ? JSON.parse(atob(token.split('.')[1])).userId : null;
+    const activeCount = members.filter((m) => m.online).length;
 
     return (
         <div style={{ padding: "2rem" }}>
-            <h2>自習室</h2>
+            <button className="back-btn" onClick={() => navigate("/rooms")}>← 回到自習室列表</button>
 
-            <div>
-                <h3>創建自習室</h3>
-                <input
-                    type="text"
-                    placeholder="輸入名稱"
-                    value={roomName}
-                    onChange={(e) => setRoomName(e.target.value)}
-                />
-                <button onClick={handleCreateRoom}>創建自習室</button>
+            <div className="studyroom-banner">
+                <h2>{roomInfo.name}</h2>
+                <p className="tagline">{roomInfo.tagline || "一起努力學習吧！"}</p>
+                <p className="date">{today}</p>
             </div>
 
-            <div>
-                <h3>自習室列表</h3>
-                <div style={{ display: "grid", gap: "1rem" }}>
-                    {allRooms.length > 0 ? (
-                        allRooms.map((room) => (
-                            <div
-                                key={room.id}
-                                className={`room-card ${currentRoom && currentRoom.id === room.id ? 'current-room' : ''}`}
-                            >
-                                <div className="room-info">
-                                    <div className={`status-dot status-${room.status}`}></div>
-                                    <span>{room.name} ({getStatusName(room.status)})</span>
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                    <span style={{ fontSize: "0.9rem", color: "#555" }}>房主: {room.creator_name}</span>
-                                    <button
-                                        className="enter-btn"
-                                        onClick={() => handleJoinRoom(room.id)}
-                                        disabled={currentRoom && currentRoom.id === room.id}
-                                    >
-                                        {currentRoom && currentRoom.id === room.id ? '已在房間' : '進入房間'}
-                                    </button>
-                                    {userId && room.creator_id === userId && (
-                                        <button
-                                            className="delete-btn"
-                                            onClick={() => handleDeleteRoom(room.id, room.name)}
-                                        >
-                                            刪除房間
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p>尚無自習室</p>
-                    )}
-                </div>
+            <div style={{ borderTop: "1px solid #ccc", paddingTop: "1rem", marginBottom: "2rem" }}>
+                <p>目前狀態：{isStudying ? "🟢 學習中" : "🟡 未開始"}　目前科目：{selectedSubject || "（尚未選擇）"}</p>
+
+                {!isStudying && (
+                    <>
+                        <select
+                            value={selectedSubject}
+                            onChange={(e) => setSelectedSubject(e.target.value)}
+                            style={{ marginRight: "1rem", padding: "6px" }}
+                        >
+                            <option value="">選擇科目</option>
+                            {subjectList.map((subj) => (
+                                <option key={subj.id} value={subj.courseName}>{subj.courseName}</option>
+                            ))}
+                        </select>
+                        <input
+                            type="text"
+                            value={newSubject}
+                            onChange={(e) => setNewSubject(e.target.value)}
+                            placeholder="新增自訂科目"
+                            style={{ marginRight: "0.5rem", padding: "6px" }}
+                        />
+                        <button onClick={handleAddSubject}>新增</button>
+                    </>
+                )}
+
+                <button className="enter-btn" onClick={toggleStudy}>
+                    {isStudying ? "停止學習" : "開始學習"}
+                </button>
+
+                <p style={{ marginTop: "0.5rem" }}>已累積學習時間：{formatTime(studyTime)}</p>
             </div>
 
-            {currentRoom && (
-                <div style={{ marginTop: "2rem" }}>
-                    <h3>你目前的房間</h3>
-                    <p>
-                        你目前在: <strong>{currentRoom.name}</strong> (房主: {currentRoom.creator_name}, 狀態: {getStatusName(currentRoom.status)})
-                    </p>
-                    <button
-                        className="leave-btn"
-                        onClick={handleLeaveRoom}
+            <h3>正在學習中的成員 {activeCount} 名</h3>
+            <div style={{ display: "grid", gap: "1rem" }}>
+                {members.map((member) => (
+                    <div
+                        key={member.id}
+                        className="room-card"
+                        onClick={() => setSelectedMember(member)}
+                        style={{ cursor: "pointer" }}
                     >
-                        退出房間
-                    </button>
+                        <div className="room-info">
+                            <div className={`status-dot ${member.online ? "status-online" : "status-offline"}`} />
+                            <strong>{member.name}</strong>
+                        </div>
+                        <span style={{ fontSize: "0.9rem", color: "#666" }}>{member.studyTime}</span>
+                    </div>
+                ))}
+            </div>
+
+            {selectedMember && (
+                <div className="member-modal">
+                    <div className="member-card">
+                        <button className="close-btn" onClick={() => setSelectedMember(null)}>×</button>
+                        <img
+                            src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${selectedMember.name}`}
+                            alt="avatar"
+                            className="member-avatar"
+                        />
+                        <h3>{selectedMember.name}</h3>
+                        <p>開始：10點08分</p>
+                        <p>狀態：{selectedMember.online ? "學習中" : "休息中"}</p>
+                        <textarea
+                            placeholder="傳送訊息給他..."
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                        />
+                        <button
+                            className="send-btn"
+                            onClick={() => {
+                                alert(`你留言給 ${selectedMember.name}：${messageText}`);
+                                setMessageText("");
+                            }}
+                        >
+                            傳送
+                        </button>
+                    </div>
                 </div>
             )}
-
-            {message && <p style={{ color: message.includes('成功') || message.includes('取消') ? 'green' : 'red' }}>{message}</p>}
         </div>
     );
 }
-
-export default RoomsPage;

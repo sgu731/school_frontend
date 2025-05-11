@@ -7,24 +7,35 @@ function NoteDetail() {
     const [note, setNote] = useState(null);
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState("");
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
-        let savedNotes = JSON.parse(localStorage.getItem("shared-notes"));
-        if (!savedNotes || savedNotes.length === 0) {
-            savedNotes = [
-                { id: 1, title: "JAVA Chapter 1", author: "人外人", views: 114, comments: 25, bookmarked: false, content: "這是 JAVA 第一章的詳細筆記內容..." },
-                { id: 2, title: "C++ Chapter11", author: "人上人", views: 25, comments: 116, bookmarked: false, content: "這是 C++ 第十一章的深入探討..." },
-                { id: 3, title: "經濟學原理 第三章", author: "人中人", views: 86, comments: 20, bookmarked: false, content: "經濟學第三章：需求與供給法則說明..." }
-            ];
-            localStorage.setItem("shared-notes", JSON.stringify(savedNotes));
-        }
-        const foundNote = savedNotes.find((n) => n.id === parseInt(id));
-        setNote(foundNote);
+        // 抓單篇筆記內容
+        fetch(`http://localhost:5000/api/notes/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res) => res.json())
+            .then((data) => setNote(data))
+            .catch((err) => {
+                console.error("載入筆記失敗：", err);
+                setNote(null);
+            });
 
-        // 讀取留言（以每篇筆記 id 為 key）
-        const savedComments = JSON.parse(localStorage.getItem(`comments-${id}`)) || [];
-        setComments(savedComments);
-    }, [id]);
+        // 抓留言串
+        fetch(`http://localhost:5000/api/notes/${id}/replies`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+            .then((res) => res.json())
+            .then((data) => setComments(data))
+            .catch((err) => {
+                console.error("載入留言失敗：", err);
+                setComments([]);
+            });
+    }, [id, token]);
 
     const handleBack = () => {
         navigate("/sharing");
@@ -33,30 +44,26 @@ function NoteDetail() {
     const handleAddComment = () => {
         if (newComment.trim() === "") return;
 
-        const now = new Date();
-        const timestamp = now.toLocaleString(); // ex: 2025/4/30 上午11:30
-
-        const newCommentObj = { text: newComment, timestamp };
-        const updatedComments = [...comments, newCommentObj];
-        setComments(updatedComments);
-        setNewComment("");
-
-        // 儲存新的留言列表
-        localStorage.setItem(`comments-${id}`, JSON.stringify(updatedComments));
-
-        // 更新筆記的留言數
-        let savedNotes = JSON.parse(localStorage.getItem("shared-notes")) || [];
-        const updatedNotes = savedNotes.map((n) => {
-            if (n.id === parseInt(id)) {
-                return { ...n, comments: n.comments + 1 };
-            }
-            return n;
-        });
-        localStorage.setItem("shared-notes", JSON.stringify(updatedNotes));
-
-        // 同步更新目前頁面的 note (讓留言數即時變動)
-        const updatedNote = updatedNotes.find((n) => n.id === parseInt(id));
-        setNote(updatedNote);
+        fetch(`http://localhost:5000/api/notes/${id}/replies`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ text: newComment })
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success) {
+                    setComments([...comments, data.comment]);
+                    setNewComment("");
+                } else {
+                    console.error("留言新增失敗：", data.message);
+                }
+            })
+            .catch((err) => {
+                console.error("留言新增失敗：", err);
+            });
     };
 
     if (!note) {
@@ -104,7 +111,6 @@ function NoteDetail() {
                         ))
                     )}
                 </div>
-
             </div>
         </div>
     );

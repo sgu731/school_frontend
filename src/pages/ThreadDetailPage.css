@@ -2,12 +2,13 @@
     padding: 24px;
     max-width: 800px;
     margin: auto;
-    font-family: sans-serif;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #white;
 }
 
 .back-button {
     background: none;
-    color: #4472c4;
+    color: #f28c28;
     font-weight: bold;
     font-size: 16px;
     border: none;
@@ -23,21 +24,24 @@
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 5px;
+    color: #333;
 }
 
 .thread-author {
-    color: #888;
+    color: #999;
     font-size: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
+    white-space: nowrap;
 }
 
 .thread-content {
-    background-color: #f9f9f9;
+    background-color: #fefaf5;
     padding: 20px;
-    border-left: 6px solid #4472c4;
+    border-left: 6px solid #f28c28;
     border-radius: 10px;
     font-size: 16px;
     margin-bottom: 30px;
+    color: #444;
 }
 
 .replies {
@@ -58,13 +62,14 @@
 }
 
 .bubble {
-    background-color: #e8f0fe;
+    background-color: #fffaf2;
     padding: 12px 16px;
     border-radius: 12px;
     max-width: 90%;
     font-size: 15px;
     line-height: 1.5;
-    border-left: 4px solid #4472c4;
+    border-left: 4px solid #f28c28;
+    color: #333;
 }
 
 .reply-input {
@@ -79,14 +84,15 @@
         min-height: 60px;
         padding: 10px;
         font-size: 15px;
-        border: 1px solid #ccc;
+        border: 1px solid #ddd;
         border-radius: 8px;
+        background-color: #fffdf8;
     }
 
     .reply-input button {
         align-self: flex-end;
         padding: 8px 16px;
-        background-color: #4472c4;
+        background-color: #f28c28;
         color: white;
         border: none;
         border-radius: 6px;
@@ -95,5 +101,5 @@
     }
 
         .reply-input button:hover {
-            background-color: #345aa3;
+            background-color: #e57717;
         }

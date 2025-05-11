@@ -1,39 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewPostPage.css";
-
-const categories = ["Python", "數學", "經濟", "哲學"];
 
 export default function NewPostPage() {
     const navigate = useNavigate();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [category, setCategory] = useState(categories[0]);
+    const [category, setCategory] = useState("");
+    const [categories, setCategories] = useState([]);
 
-    const handleSubmit = () => {
+    useEffect(() => {
+        fetch("http://localhost:5000/api/categories")
+            .then(res => res.json())
+            .then(data => {
+                setCategories(data);
+                if (data.length > 0) setCategory(data[0].name);
+            })
+            .catch(err => {
+                console.error("讀取分類失敗", err);
+            });
+    }, []);
+
+    const handleSubmit = async () => {
         if (!title.trim() || !content.trim()) {
             alert("請填寫標題與內容！");
             return;
         }
 
-        const storedThreads = JSON.parse(localStorage.getItem("threads")) || {};
-        const newId = Date.now(); // 用 timestamp 當新的 id
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("請先登入才能發文");
+            return;
+        }
 
-        const newThread = {
-            author: "你",
-            title,
-            content,
-            replies: [],
-            favorites: 0,
-            date: new Date().toISOString().slice(0, 10),
-            bookmarked: false,
-            category
-        };
+        try {
+            const res = await fetch("http://localhost:5000/api/forum", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ title, content, category })
+            });
 
-        storedThreads[newId] = newThread;
-        localStorage.setItem("threads", JSON.stringify(storedThreads));
-
-        navigate("/forum"); // 發表完回討論區
+            if (res.ok) {
+                alert("✅ 發表成功！");
+                navigate("/forum");
+            } else {
+                const result = await res.json();
+                alert("❌ 發表失敗: " + result.error);
+            }
+        } catch (err) {
+            console.error("發表文章失敗", err);
+            alert("❌ 發文時出錯！");
+        }
     };
 
     return (
@@ -58,7 +78,7 @@ export default function NewPostPage() {
                 onChange={(e) => setCategory(e.target.value)}
             >
                 {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
             </select>
 
