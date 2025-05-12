@@ -13,9 +13,19 @@ const PlanPage = () => {
   const [startHour, setStartHour]       = useState(0);
   const [endHour,   setEndHour]         = useState(23);
 
+  const generateColor = (index) => `hsl(${index * 47 % 360}, 50%, 65%)`;
+
+  const subjectColorMap = useMemo(() => {
+    const map = {};
+    subjects.forEach((subj, i) => {
+      map[subj.name] = generateColor(i); 
+    });
+    return map;
+  }, [subjects]);
+
   const getWeekDates = useCallback((date) => {
     const startOfWeek = new Date(date);
-    const diff = startOfWeek.getDay(); // Sun = 0
+    const diff = startOfWeek.getDay(); 
     startOfWeek.setDate(date.getDate() - diff);
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(startOfWeek);
@@ -191,7 +201,7 @@ const PlanPage = () => {
                       top:`${top}px`,
                       left:2, right:2,
                       height:`${h}px`,
-                      background:'rgba(255,147,41,0.85)',
+                      background: subjectColorMap[plan.subject_name] || 'rgba(255,147,41,0.85)',
                       borderRadius:4,
                       fontSize:12,
                       display:'flex',
@@ -225,6 +235,15 @@ const PlanPage = () => {
         planData={modalData}
         subjects={subjects}
       />
+
+      <div style={{ marginTop: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}>
+        {Object.entries(subjectColorMap).map(([subj, color]) => (
+          <div key={subj} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 12, height: 12, backgroundColor: color, borderRadius: 2 }} />
+            <span style={{ fontSize: 12 }}>{subj}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
