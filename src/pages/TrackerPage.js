@@ -1,10 +1,12 @@
+// 🛠 修正 weekSlots 的過濾條件，讓 startHour / endHour 正確影響顯示範圍
+
 import React, { useEffect, useState, useMemo } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
     PieChart, Pie, Cell
 } from 'recharts';
 
-const COLORS = ['#4472c4', '#ed7d31', '#70ad47', '#5b9bd5'];
+const COLORS = ['#4472c4', '#ed7d31', '#70ad47', '#5b9bd5', '#ffc000', '#a5a5a5', '#264478', '#9e480e'];
 
 const getWeekStart = (d = new Date()) => {
     const s = new Date(d);
@@ -12,6 +14,17 @@ const getWeekStart = (d = new Date()) => {
     s.setDate(s.getDate() - s.getDay());
     return s;
 };
+
+const SubjectLegend = ({ colorMap }) => (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem' }}>
+        {Object.entries(colorMap).map(([subj, col]) => (
+            <div key={subj} style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{ width: 12, height: 12, background: col, marginRight: 6, borderRadius: 2 }} />
+                <span style={{ fontSize: 12 }}>{subj}</span>
+            </div>
+        ))}
+    </div>
+);
 
 const TrackerPage = () => {
     const [barData, setBarData] = useState([]);
@@ -66,6 +79,15 @@ const TrackerPage = () => {
         }
     }, [startHour]);
 
+    const subjectColorMap = useMemo(() => {
+        const uniqueSubjects = [...new Set(records.map(r => r.subject_name))].sort();
+        const map = {};
+        uniqueSubjects.forEach((subj, i) => {
+            map[subj] = COLORS[i % COLORS.length];
+        });
+        return map;
+    }, [records]);
+
     const weekSlots = useMemo(() => {
         const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 3600 * 1000);
         return records
@@ -73,7 +95,8 @@ const TrackerPage = () => {
                 const t = new Date(r.created_at);
                 const inWeek = t >= weekStart && t < weekEnd;
                 const inSubj = !filterSubj || r.subject_name === filterSubj;
-                return inWeek && inSubj;
+                const hour = t.getHours();
+                return inWeek && inSubj && hour >= startHour && hour <= endHour;
             })
             .map(r => {
                 const start = new Date(r.created_at);
@@ -87,19 +110,19 @@ const TrackerPage = () => {
                     duration: r.duration
                 };
             });
-    }, [records, weekStart, filterSubj]);
+    }, [records, weekStart, filterSubj, startHour, endHour]);
 
-    const subjectColorMap = useMemo(() => {
+    // ...前面內容同 Canvas（略）...
+
+    const groupedSlots = useMemo(() => {
         const map = {};
-        let idx = 0;
-        records.forEach(r => {
-            if (!map[r.subject_name]) {
-                map[r.subject_name] = COLORS[idx % COLORS.length];
-                idx += 1;
-            }
+        weekSlots.forEach(s => {
+            const key = `${s.col}_${s.rowStart}`;
+            if (!map[key]) map[key] = [];
+            map[key].push(s);
         });
         return map;
-    }, [records]);
+    }, [weekSlots]);
 
     const weekTotalHours = useMemo(() => {
         return weekSlots.reduce((sum, s) => sum + s.duration / 3600, 0).toFixed(2);
@@ -174,19 +197,14 @@ const TrackerPage = () => {
                     <div key={`bg-${i}`} style={{ borderBottom: '1px solid #f5f5f5' }} />
                 ))}
 
-                {weekSlots
-                    .filter(s => {
-                        const row = s.rowStart;
-                        const minRow = startHour * 2;
-                        const maxRow = (endHour + 1) * 2;
-                        return row >= minRow && row < maxRow;
-                    })
-                    .map((s, i) => (
+                {Object.entries(groupedSlots).flatMap(([key, group], groupIndex) => {
+                    const [col, rowStart] = key.split('_').map(Number);
+                    return group.map((s, i) => (
                         <div
-                            key={i}
+                            key={`${key}-${i}`}
                             style={{
-                                gridColumn: s.col + 2,
-                                gridRow: `${s.rowStart - startHour * 2 + 1} / span ${s.span}`,
+                                gridColumn: col + 2,
+                                gridRow: `${rowStart - startHour * 2 + 1} / span ${s.span}`,
                                 background: subjectColorMap[s.subject],
                                 color: '#fff',
                                 fontSize: 10,
@@ -195,22 +213,15 @@ const TrackerPage = () => {
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                justifyContent: 'center'
+                                justifyContent: 'center',
+                                marginTop: `${i * 2}px`
                             }}
                         >
                             <div>{s.subject}</div>
                             <div>{s.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–{s.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                         </div>
-                    ))}
-            </div>
-
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                {Object.entries(subjectColorMap).map(([subj, col]) => (
-                    <div key={subj} style={{ display: 'flex', alignItems: 'center' }}>
-                        <div style={{ width: 12, height: 12, background: col, marginRight: 6, borderRadius: 2 }} />
-                        <span style={{ fontSize: 12 }}>{subj}</span>
-                    </div>
-                ))}
+                    ));
+                })}
             </div>
 
             <div style={{ marginTop: '1rem', fontSize: '0.95rem', fontWeight: 500 }}>
@@ -221,9 +232,8 @@ const TrackerPage = () => {
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ textAlign: 'left' }}>成效追蹤</h2>
-            </div>
+            <h2 style={{ textAlign: 'left' }}>成效追蹤</h2>
+
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2rem', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: '400px' }}>
                     <h3>綜合學習時間</h3>
@@ -232,18 +242,25 @@ const TrackerPage = () => {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" interval={0} tick={{ fontSize: 12 }} />
                             <YAxis />
-                            <Tooltip />
+                            <Tooltip formatter={(value, name) => {
+                                const mins = Math.floor(value * 60);
+                                const mm = Math.floor(mins % 60);
+                                const ss = Math.floor((value * 3600) % 60);
+                                return [`${mm}分${ss}秒`, name];
+                            }} />
                             {pieData.map((item, index) => (
                                 <Bar key={item.name} dataKey={item.name} stackId="a" fill={subjectColorMap[item.name] || COLORS[index % COLORS.length]} />
                             ))}
                         </BarChart>
                     </ResponsiveContainer>
+                    <SubjectLegend colorMap={subjectColorMap} />
                 </div>
 
                 <div style={{ flex: 1, minWidth: '400px' }}>
                     <h3>學習時間比例</h3>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
+                            <Tooltip formatter={(value, name) => [`${(value * 60).toFixed(0)} 分鐘`, name]} />
                             <Pie
                                 data={pieData}
                                 dataKey="value"
@@ -260,6 +277,7 @@ const TrackerPage = () => {
                             </Pie>
                         </PieChart>
                     </ResponsiveContainer>
+                    <SubjectLegend colorMap={subjectColorMap} />
                 </div>
             </div>
 
