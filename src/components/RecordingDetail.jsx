@@ -84,7 +84,7 @@ export default function RecordingDetail() {
   const handleAddNote = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/notes",
+        "http://localhost:5000/api/note",
         {
           title: state?.title,
           content: `${transcript}\n\n${translation}`,

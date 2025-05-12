@@ -124,7 +124,7 @@ export default function NoteDetailPage() {
   
     try {
       await axios.put(
-        `http://localhost:5000/api/notes/${state.id}`,
+        `http://localhost:5000/api/note/${state.id}`,
         {
           title,
           content: fullContent,
@@ -147,7 +147,7 @@ export default function NoteDetailPage() {
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
   
     try {
-      await axios.delete(`http://localhost:5000/api/notes/${state.id}`, authHeader);
+      await axios.delete(`http://localhost:5000/api/note/${state.id}`, authHeader);
       alert("✅ 筆記已刪除！");
       navigate("/notebook", { state: { reload: true } });
     } catch (err) {

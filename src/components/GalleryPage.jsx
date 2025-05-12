@@ -56,7 +56,7 @@ export default function GalleryPage() {
       if (confirmAdd) {
         const now = new Date().toISOString();
         await axios.post(
-          "http://localhost:5000/api/notes",
+          "http://localhost:5000/api/note",
           {
             title: "從圖片轉文字",
             content: text,
