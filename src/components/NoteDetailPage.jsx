@@ -76,7 +76,7 @@ export default function NoteDetailPage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/ai/analyze",
+        "http://localhost:8000/ai/analyze",
         { text: selectedText, prompt: promptMap[mode] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -105,9 +105,10 @@ export default function NoteDetailPage() {
     }
   };
 
-  const saveChanges = () => {
-    const notes = JSON.parse(localStorage.getItem("importedNotes") || "[]");
-
+  const saveChanges = async () => {
+    const token = localStorage.getItem("token");
+    const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+  
     const analysisText = analysisResults
       .map((item) => {
         if (item.mode === "報告模式") {
@@ -117,27 +118,41 @@ export default function NoteDetailPage() {
         }
       })
       .join("");
-
+  
     const fullContent = content + analysisText;
-
-    const updated = notes.map((note) =>
-      note.date === date
-        ? { ...note, title, content: fullContent }
-        : note
-    );
-
-    localStorage.setItem("importedNotes", JSON.stringify(updated));
-    alert("✅ 筆記已儲存（包含分析結果）！");
-    setAnalysisResults([]);
+    const now = new Date().toISOString();
+  
+    try {
+      await axios.put(
+        `http://localhost:5000/api/note/${state.id}`,
+        {
+          title,
+          content: fullContent,
+          updatedAt: now,
+        },
+        authHeader
+      );
+      alert("✅ 筆記已儲存（包含分析結果）！");
+      setAnalysisResults([]);
+    } catch (err) {
+      console.error("筆記儲存失敗", err);
+      alert("❌ 儲存筆記失敗！");
+    }
   };
 
-  const deleteNote = () => {
-    if (window.confirm("❗確定要刪除這篇筆記嗎？")) {
-      const notes = JSON.parse(localStorage.getItem("importedNotes") || "[]");
-      const updated = notes.filter((note) => note.date !== date);
-      localStorage.setItem("importedNotes", JSON.stringify(updated));
+  const deleteNote = async () => {
+    if (!window.confirm("❗確定要刪除這篇筆記嗎？")) return;
+  
+    const token = localStorage.getItem("token");
+    const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+  
+    try {
+      await axios.delete(`http://localhost:5000/api/note/${state.id}`, authHeader);
       alert("✅ 筆記已刪除！");
       navigate("/notebook", { state: { reload: true } });
+    } catch (err) {
+      console.error("筆記刪除失敗", err);
+      alert("❌ 刪除筆記失敗！");
     }
   };
 

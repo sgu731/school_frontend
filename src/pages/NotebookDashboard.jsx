@@ -3,6 +3,7 @@ import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 export default function NotebookDashboard() {
   const navigate = useNavigate();
@@ -13,6 +14,8 @@ export default function NotebookDashboard() {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   useEffect(() => {
     loadNotes();
@@ -24,18 +27,14 @@ export default function NotebookDashboard() {
     }
   }, [location.state]);
 
-  const loadNotes = () => {
-    const imported = JSON.parse(localStorage.getItem("importedNotes") || "[]");
-    const formatted = imported.map((item, i) => ({
-      id: Date.now() + i,
-      title: item.title || "從語音轉文字",
-      content: item.content || "",
-      date: item.date || new Date().toISOString(),
-      updatedAt: item.updatedAt || item.date || new Date().toISOString(),
-    }));
-
-    const sorted = formatted.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    setNotes(sorted);
+  const loadNotes = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/note", authHeader);
+      const sorted = res.data.notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      setNotes(sorted);
+    } catch (err) {
+      console.error("無法載入筆記", err);
+    }
   };
 
   const formatDate = (isoDate) => {
@@ -48,31 +47,27 @@ export default function NotebookDashboard() {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   };
 
-  const addNote = () => {
-    const now = new Date().toISOString();
+  const addNote = async () => {
+    const formatForMySQL = (d) => {
+      return d.toISOString().slice(0, 19).replace("T", " ");
+    };
+    
+    const now = formatForMySQL(new Date());
     const newNote = {
-      id: Date.now(),
       title: `新筆記 ${notes.length + 1}`,
       content: "",
       date: now,
       updatedAt: now,
     };
-
-    const updated = [newNote, ...notes];
-    setNotes(updated);
-    localStorage.setItem(
-      "importedNotes",
-      JSON.stringify(updated.map(({ title, content, date, updatedAt }) => ({ title, content, date, updatedAt })))
-    );
-
-    navigate("/note-detail", {
-      state: {
-        id: newNote.id,
-        title: newNote.title,
-        content: newNote.content,
-        date: newNote.date,
-      },
-    });
+  
+    try {
+      const res = await axios.post("http://localhost:5000/api/note", newNote, authHeader);
+      const createdNote = res.data.note;
+      setNotes([createdNote, ...notes]);
+      navigate("/note-detail", { state: createdNote });
+    } catch (err) {
+      console.error("新增筆記失敗", err);
+    }
   };
 
   const startEditing = (note) => {
@@ -81,31 +76,37 @@ export default function NotebookDashboard() {
     setEditContent(note.content);
   };
 
-  const saveEditing = () => {
+  const saveEditing = async () => {
     const now = new Date().toISOString();
-    const updated = notes.map((note) =>
-      note.id === editingNoteId
-        ? { ...note, title: editTitle, content: editContent, updatedAt: now }
-        : note
-    );
-    const sorted = updated.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-    setNotes(sorted);
-    setEditingNoteId(null);
-
-    const saved = sorted.map(({ title, content, date, updatedAt }) => ({ title, content, date, updatedAt }));
-    localStorage.setItem("importedNotes", JSON.stringify(saved));
+    try {
+      const res = await axios.put(
+        `http://localhost:5000/api/note/${editingNoteId}`,
+        { title: editTitle, content: editContent, updatedAt: now },
+        authHeader
+      );
+      const updated = notes.map((note) =>
+        note.id === editingNoteId ? { ...res.data.note } : note
+      );
+      const sorted = updated.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+      setNotes(sorted);
+      setEditingNoteId(null);
+    } catch (err) {
+      console.error("儲存筆記失敗", err);
+    }
   };
 
   const cancelEditing = () => {
     setEditingNoteId(null);
   };
 
-  const deleteNote = (id) => {
-    if (window.confirm("確定要刪除這筆筆記嗎？")) {
-      const remaining = notes.filter((note) => note.id !== id);
-      setNotes(remaining);
-      const saved = remaining.map(({ title, content, date, updatedAt }) => ({ title, content, date, updatedAt }));
-      localStorage.setItem("importedNotes", JSON.stringify(saved));
+  const deleteNote = async (id) => {
+    if (!window.confirm("確定要刪除這筆筆記嗎？")) return;
+  
+    try {
+      await axios.delete(`http://localhost:5000/api/note/${id}`, authHeader);
+      setNotes(notes.filter((note) => note.id !== id));
+    } catch (err) {
+      console.error("刪除筆記失敗", err);
     }
   };
 

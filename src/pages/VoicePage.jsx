@@ -4,6 +4,7 @@ import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function VoicePage() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export default function VoicePage() {
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
   const recognitionRef = useRef(null);
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const [transcript, setTranscript] = useState("");
   const [translated, setTranslated] = useState("");
@@ -25,13 +28,25 @@ export default function VoicePage() {
   const [enableTranslation, setEnableTranslation] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("voiceNotes");
-    if (stored) setRecordings(JSON.parse(stored));
+    const fetchRecordings = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/recordings", authHeader);
+        setRecordings(res.data.recordings || []);
+      } catch (err) {
+        console.error("讀取錄音失敗", err);
+      }
+    };
+    fetchRecordings();
   }, []);
 
-  const saveToLocalStorage = (data) => {
-    setRecordings(data);
-    localStorage.setItem("voiceNotes", JSON.stringify(data));
+  const formatDate = (isoString) => {
+    const date = new Date(isoString);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const h = String(date.getHours()).padStart(2, "0");
+    const min = String(date.getMinutes()).padStart(2, "0");
+    return `${y}/${m}/${d} ${h}:${min}`;
   };
 
   const startRecording = async () => {
@@ -43,28 +58,30 @@ export default function VoicePage() {
       if (e.data.size > 0) audioChunks.current.push(e.data);
     };
 
-    mediaRecorderRef.current.onstop = () => {
+    mediaRecorderRef.current.onstop = async () => {
       if (audioChunks.current.length === 0) {
         alert("⚠️ 錄音失敗：沒有有效音訊，請錄久一點再試一次。");
         return;
       }
       const blob = new Blob(audioChunks.current, { type: "audio/webm" });
-      const url = URL.createObjectURL(blob);
-
       const now = new Date();
-      const localTime = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, "0")}/${now.getDate().toString().padStart(2, "0")} ${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      const formattedDuration = `${String(Math.floor(recordingTime / 60)).padStart(2, "0")}:${String(recordingTime % 60).padStart(2, "0")}`;
+      const localTime = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-      const newRecord = {
-        id: Date.now(),
-        title: `錄音 ${recordings.length + 1}`,
-        url,
-        time: localTime,
-        duration: `${Math.floor(recordingTime / 60).toString().padStart(2, '0')}:${(recordingTime % 60).toString().padStart(2, '0')}`,
-        text: transcript,
-        translation: translated,
-      };
-      const updated = [...recordings, newRecord];
-      saveToLocalStorage(updated);
+      const formData = new FormData();
+      formData.append("audio", blob);
+      formData.append("title", `錄音 ${recordings.length + 1}`);
+      formData.append("duration", formattedDuration);
+      formData.append("time", localTime);
+      formData.append("text", transcript);
+      formData.append("translation", translated);
+
+      try {
+        const res = await axios.post("http://localhost:5000/api/recordings", formData, authHeader);
+        setRecordings((prev) => [...prev, res.data.recording]);
+      } catch (err) {
+        console.error("錄音儲存失敗", err);
+      }
     };
 
     mediaRecorderRef.current.start();
@@ -118,9 +135,28 @@ export default function VoicePage() {
     setTranslated(translatedText);
   };
 
-  const deleteRecording = (id) => {
-    const updated = recordings.filter((r) => r.id !== id);
-    saveToLocalStorage(updated);
+  const deleteRecording = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/recordings/${id}`, authHeader);
+      setRecordings(recordings.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("刪除錄音失敗", err);
+    }
+  };
+
+  const updateTitle = async (id, newTitle) => {
+    try {
+      const res = await axios.put(
+        `http://localhost:5000/api/recordings/${id}`,
+        { title: newTitle },
+        authHeader
+      );
+      const updated = recordings.map((r) => (r.id === id ? res.data.recording : r));
+      setRecordings(updated);
+      setEditingId(null);
+    } catch (err) {
+      console.error("更新標題失敗", err);
+    }
   };
 
   const downloadRecording = (url, title) => {
@@ -197,13 +233,9 @@ export default function VoicePage() {
                 {editingId === rec.id ? (
                   <div className="flex items-center gap-2 mb-2">
                     <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="border p-1 rounded" />
-                    <Button size="sm" onClick={() => {
-                      const updated = recordings.map((r) =>
-                        r.id === rec.id ? { ...r, title: editTitle } : r
-                      );
-                      saveToLocalStorage(updated);
-                      setEditingId(null);
-                    }}>✅ 儲存</Button>
+                    <Button size="sm" onClick={() => updateTitle(rec.id, editTitle)}>
+                      ✅ 儲存
+                    </Button>
                     <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>❌ 取消</Button>
                   </div>
                 ) : (
@@ -226,7 +258,7 @@ export default function VoicePage() {
                     </Button>
                   </div>
                 )}
-                <p className="text-xs text-gray-300">{rec.time}</p>
+                <p className="text-xs text-gray-300">{formatDate(rec.time)}</p>
                 <p className="text-sm text-gray-500">時長：{rec.duration}</p>
                 <audio controls src={rec.url} className="w-full my-2" />
                 <div className="flex gap-2 mt-2">

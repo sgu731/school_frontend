@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Camera, Upload, ImagePlus } from "lucide-react"; // ✅ 加入 ImagePlus
+import axios from "axios";
 
 export default function CameraPage() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const startCamera = async () => {
     setIsCameraOpen(true);
@@ -46,19 +49,46 @@ export default function CameraPage() {
 
   const uploadImages = (e) => {
     Array.from(e.target.files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        saveImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+      const formData = new FormData();
+      formData.append("image", file);
+  
+      axios
+        .post("http://localhost:5000/api/images", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then(() => alert("✅ 圖片已儲存到資料庫！"))
+        .catch((err) => {
+          console.error("圖片儲存失敗", err);
+          alert("❌ 圖片儲存失敗！");
+        });
     });
   };
 
-  const saveImage = (imageDataUrl) => {
-    const prev = JSON.parse(localStorage.getItem("importedImages") || "[]");
-    const updated = [...prev, imageDataUrl];
-    localStorage.setItem("importedImages", JSON.stringify(updated));
-    alert("已成功加入圖片庫！");
+  const saveImage = async (imageDataUrl) => {
+    try {
+      // 將 base64 轉為 blob 再變成 File
+      const res = await fetch(imageDataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], "photo.png", { type: "image/png" });
+  
+      const formData = new FormData();
+      formData.append("image", file);
+  
+      await axios.post("http://localhost:5000/api/images", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+  
+      alert("✅ 圖片已儲存到資料庫！");
+    } catch (err) {
+      console.error("圖片儲存失敗", err);
+      alert("❌ 圖片儲存失敗！");
+    }
   };
 
   return (
