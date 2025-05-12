@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function RecordingPage() {
   const navigate = useNavigate();
@@ -14,7 +15,10 @@ export default function RecordingPage() {
   const audioChunks = useRef([]);
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
-  const enableTranslationRef = useRef(true); // ✅ 使用 ref 控制翻譯勾選狀態
+  const enableTranslationRef = useRef(true);
+
+  const token = localStorage.getItem("token");
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -42,7 +46,6 @@ export default function RecordingPage() {
 
       recognitionRef.current.onresult = (e) => {
         let finalTranscript = "";
-
         for (let i = e.resultIndex; i < e.results.length; ++i) {
           if (e.results[i].isFinal) {
             finalTranscript += e.results[i][0].transcript;
@@ -51,7 +54,6 @@ export default function RecordingPage() {
 
         if (finalTranscript) {
           setTranscript((prev) => prev + finalTranscript);
-
           if (enableTranslationRef.current) {
             (async () => {
               try {
@@ -62,7 +64,6 @@ export default function RecordingPage() {
                 const detectData = await detectRes.json();
                 const sourceLang = detectData[2];
                 const targetLang = sourceLang.startsWith("zh") ? "en" : "zh-TW";
-
                 if (sourceLang.startsWith(targetLang.slice(0, 2))) return;
 
                 const transRes = await fetch(
@@ -87,44 +88,32 @@ export default function RecordingPage() {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
 
-      mediaRecorderRef.current.onstop = () => {
+      mediaRecorderRef.current.onstop = async () => {
         if (audioChunks.current.length === 0) {
           alert("⚠️ 錄音失敗，請錄久一點！");
           return;
         }
 
         const blob = new Blob(audioChunks.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(blob);
-
         const now = new Date();
-        const localTime = `${now.getFullYear()}/${(now.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}/${now.getDate().toString().padStart(2, "0")} ${now
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        const formattedDuration = `${String(Math.floor(recordingTime / 60)).padStart(2, "0")}:${String(recordingTime % 60).padStart(2, "0")}`;
+        const localTime = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
-        const prev = JSON.parse(localStorage.getItem("voiceNotes") || "[]");
-        const maxIndex = prev.reduce((max, r) => {
-          const match = r.title.match(/^錄音 (\d+)$/);
-          const num = match ? parseInt(match[1]) : 0;
-          return Math.max(max, num);
-        }, 0);
+        const formData = new FormData();
+        formData.append("audio", blob);
+        formData.append("title", `錄音 ${Date.now()}`);
+        formData.append("duration", formattedDuration);
+        formData.append("time", localTime);
+        formData.append("text", transcript);
+        formData.append("translation", translated);
 
-        const newRecord = {
-          id: Date.now(),
-          title: `錄音 ${maxIndex + 1}`,
-          url,
-          time: localTime,
-          duration: `${Math.floor(recordingTime / 60)
-            .toString()
-            .padStart(2, "0")}:${(recordingTime % 60).toString().padStart(2, "0")}`,
-          text: transcript,
-          translation: translated,
-        };
-
-        localStorage.setItem("voiceNotes", JSON.stringify([...prev, newRecord]));
-        alert("✅ 錄音已儲存至語音庫");
+        try {
+          await axios.post("http://localhost:5000/api/recordings", formData, authHeader);
+          alert("✅ 錄音已儲存至語音庫");
+        } catch (err) {
+          console.error("儲存失敗", err);
+          alert("❌ 儲存失敗");
+        }
       };
     }
 
@@ -189,7 +178,7 @@ export default function RecordingPage() {
                     enableTranslationRef.current = e.target.checked;
                   }}
                 />
-                啟用即時翻譯（自動中英互譯）
+                啟用即時翻譯
               </label>
             </div>
           </>
