@@ -88,7 +88,6 @@ export default function RecordingDetail() {
         {
           title: state?.title,
           content: `${transcript}\n\n${translation}`,
-          url: state?.url || "",
         },
         authHeader
       );

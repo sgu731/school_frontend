@@ -110,6 +110,23 @@ export default function NotebookDashboard() {
     }
   };
 
+  function extractPlainTextFromTipTapJSON(json) {
+    if (!json || typeof json !== 'object') return '';
+    let text = '';
+  
+    if (Array.isArray(json.content)) {
+      json.content.forEach((node) => {
+        text += extractPlainTextFromTipTapJSON(node);
+      });
+    }
+  
+    if (json.type === 'text') {
+      text += json.text || '';
+    }
+  
+    return text;
+  }
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -262,7 +279,14 @@ export default function NotebookDashboard() {
                       {note.title || "（未命名筆記）"}
                     </div>
                     <div style={{ fontSize: "12px", color: "#6b7280", wordBreak: "break-word" }}>
-                      {note.content}
+                      {(() => {
+                        try {
+                          const parsed = typeof note.content === "string" ? JSON.parse(note.content) : note.content;
+                          return extractPlainTextFromTipTapJSON(parsed.editor);
+                        } catch {
+                          return note.content; // fallback：顯示原始字串
+                        }
+                      })()}
                     </div>
                   </div>
                   <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "4px" }}>

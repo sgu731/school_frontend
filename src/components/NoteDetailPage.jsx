@@ -1,3 +1,4 @@
+// NoteDetailPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
@@ -5,21 +6,42 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import MermaidRenderer from "./common/MermaidRenderer";
 import axios from "axios";
+import NoteEditor from "./NoteEditor";
 
 export default function NoteDetailPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { title: initialTitle, content: initialContent, date } = state || {};
 
+  console.log("initialContent from state:", initialContent);
+
+  const isValidTipTapJson = (data) => {
+  return data?.editor?.type === "doc" && Array.isArray(data?.editor?.content);
+  };
+
+  const parsed = (() => {
+    try {
+      return typeof initialContent === "string" ? JSON.parse(initialContent) : initialContent;
+    } catch {
+      return null;
+    }
+  })();
+
   const [title, setTitle] = useState(initialTitle || "");
-  const [content, setContent] = useState(initialContent || "");
+  const [editorContent, setEditorContent] = useState(() =>
+    isValidTipTapJson(parsed)
+      ? parsed.editor
+      : { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: initialContent || "" }] }] }
+  );
+  
+  const [analysisResults, setAnalysisResults] = useState(() =>
+    isValidTipTapJson(parsed) ? parsed.analysis ?? [] : []
+  );
+  
   const [selectedText, setSelectedText] = useState("");
   const [toolbarPosition, setToolbarPosition] = useState(null);
-  const [analysisResults, setAnalysisResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const contentRef = useRef();
   const titleRef = useRef();
 
   useEffect(() => {
@@ -40,17 +62,11 @@ export default function NoteDetailPage() {
         let centerX = (rect.left + rect.right) / 2;
         const safePadding = 100;
 
-        if (centerX < safePadding) {
-          centerX = safePadding;
-        } else if (centerX > viewportWidth - safePadding) {
-          centerX = viewportWidth - safePadding;
-        }
+        if (centerX < safePadding) centerX = safePadding;
+        else if (centerX > viewportWidth - safePadding) centerX = viewportWidth - safePadding;
 
         setSelectedText(selected);
-        setToolbarPosition({
-          top: rect.top + window.scrollY - 50,
-          left: centerX,
-        });
+        setToolbarPosition({ top: rect.top + window.scrollY - 50, left: centerX });
       } else {
         setSelectedText("");
         setToolbarPosition(null);
@@ -82,23 +98,11 @@ export default function NoteDetailPage() {
       );
 
       const analysis = response.data.analysis || "⚠️ 無回應內容";
-      setAnalysisResults((prev) => [
-        ...prev,
-        {
-          mode,
-          content: analysis,
-        },
-      ]);
+      setAnalysisResults((prev) => [...prev, { mode, content: analysis }]);
     } catch (err) {
       const errorMessage = `分析失敗：${err.response?.data?.error || err.message}`;
       setError(errorMessage);
-      setAnalysisResults((prev) => [
-        ...prev,
-        {
-          mode,
-          content: `⚠️ ${errorMessage}`,
-        },
-      ]);
+      setAnalysisResults((prev) => [...prev, { mode, content: `⚠️ ${errorMessage}` }]);
       setTimeout(() => setError(""), 2000);
     } finally {
       setLoading(false);
@@ -108,28 +112,14 @@ export default function NoteDetailPage() {
   const saveChanges = async () => {
     const token = localStorage.getItem("token");
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-  
-    const analysisText = analysisResults
-      .map((item) => {
-        if (item.mode === "報告模式") {
-          return `\n\n【${item.mode}】\n\`\`\`mermaid\n${item.content}\n\`\`\``;
-        } else {
-          return `\n\n【${item.mode}】\n${item.content}`;
-        }
-      })
-      .join("");
-  
-    const fullContent = content + analysisText;
     const now = new Date().toISOString();
-  
+
+    const fullContent = JSON.stringify({ editor: editorContent, analysis: analysisResults });
+
     try {
       await axios.put(
         `http://localhost:5000/api/note/${state.id}`,
-        {
-          title,
-          content: fullContent,
-          updatedAt: now,
-        },
+        { title, content: fullContent, updatedAt: now },
         authHeader
       );
       alert("✅ 筆記已儲存（包含分析結果）！");
@@ -142,10 +132,10 @@ export default function NoteDetailPage() {
 
   const deleteNote = async () => {
     if (!window.confirm("❗確定要刪除這篇筆記嗎？")) return;
-  
+
     const token = localStorage.getItem("token");
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-  
+
     try {
       await axios.delete(`http://localhost:5000/api/note/${state.id}`, authHeader);
       alert("✅ 筆記已刪除！");
@@ -156,25 +146,12 @@ export default function NoteDetailPage() {
     }
   };
 
-  const autoGrow = () => {
-    if (contentRef.current) {
-      contentRef.current.style.height = "auto";
-      contentRef.current.style.height = `${contentRef.current.scrollHeight}px`;
-    }
-  };
-
-  useEffect(() => {
-    autoGrow();
-  }, [content]);
-
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 上方橘色橫條 */}
       <div className="bg-orange-400 p-4 flex items-center justify-between gap-4 relative">
         <Button variant="ghost" className="flex items-center gap-1" onClick={() => navigate("/notebook")}>
           <ArrowLeft size={18} />
         </Button>
-
         <div className="flex-1 text-center">
           <input
             ref={titleRef}
@@ -183,7 +160,6 @@ export default function NoteDetailPage() {
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
-
         <div className="flex gap-2">
           <Button variant="destructive" size="sm" onClick={deleteNote}>
             刪除筆記
@@ -194,18 +170,9 @@ export default function NoteDetailPage() {
         </div>
       </div>
 
-      {/* 筆記內容 + 分析 */}
       <div className="flex-1 overflow-auto p-6 bg-gray-50 relative">
-        <textarea
-          ref={contentRef}
-          className="prose w-full max-w-full text-gray-800 border p-6 rounded bg-white min-h-[200px] outline-none resize-none"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="請輸入筆記內容..."
-          onInput={autoGrow}
-        />
+        <NoteEditor value={editorContent} onChange={setEditorContent} />
 
-        {/* 浮動選單 */}
         {selectedText && toolbarPosition && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -225,9 +192,7 @@ export default function NoteDetailPage() {
                 <button
                   key={mode}
                   onClick={() => handleMode(mode)}
-                  className={`px-4 py-2 hover:bg-gray-100 ${
-                    index < 2 ? "border-r border-gray-300" : ""
-                  }`}
+                  className={`px-4 py-2 hover:bg-gray-100 ${index < 2 ? "border-r border-gray-300" : ""}`}
                 >
                   {mode}
                 </button>
@@ -236,7 +201,6 @@ export default function NoteDetailPage() {
           </motion.div>
         )}
 
-        {/* 分析結果呈現 */}
         {analysisResults.length > 0 && (
           <div className="mt-6 space-y-4">
             {analysisResults.map((item, index) => (

@@ -112,18 +112,25 @@ function TranscribePage() {
                         borderRadius: '6px',
                         cursor: 'pointer',
                       }}
-                      onClick={() => {
-                        const notes = JSON.parse(localStorage.getItem("importedNotes") || "[]");
-                        const now = new Date().toISOString();
-                        const newNote = {
-                          title: `語音轉錄筆記`,
-                          content: formatTranscription(transcription, source),
-                          date: now,
-                          updatedAt: now,
-                        };
-                        const updatedNotes = [newNote, ...notes];
-                        localStorage.setItem("importedNotes", JSON.stringify(updatedNotes));
-                        alert("已將轉錄結果加入筆記！");
+                      onClick={async () => {
+                        try {
+                          const response = await axios.post(
+                            "http://localhost:5000/api/note",
+                            {
+                              title: "語音轉錄筆記",
+                              content: formatTranscription(transcription, source),
+                            },
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+                          alert("✅ 已成功將轉錄結果加入筆記！");
+                        } catch (err) {
+                          console.error("加入筆記失敗：", err);
+                          alert("❌ 加入筆記失敗，請稍後再試！");
+                        }
                       }}
                     >
                       加入筆記
