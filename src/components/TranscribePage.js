@@ -62,18 +62,24 @@ function TranscribePage() {
     };
 
     // 處理轉錄結果的分行顯示
-    const formatTranscription = (text, source) => {
+    const formatTranscription = (text) => {
         if (!text) return '';
-        if (source === 'subtitles') {
-            // 移除 .vtt 格式的時間戳，只保留字幕文字
-            const lines = text.split('\n').filter(line => {
-                return line && !line.startsWith('WEBVTT') && !line.match(/^\d{2}:\d{2}/);
-            });
-            return lines.join('\n');
-        }
-        // Whisper 轉錄結果按句號或換行分行
-        return text.split(/[。！？\n]/).filter(line => line.trim()).join('\n');
-    };
+      
+        const lines = text
+          .split('\n')
+          .filter(line => {
+            const isMeta = line.startsWith('WEBVTT') || line.startsWith('Kind') || line.startsWith('Language');
+            const isTimestamp = /^\d{2}:\d{2}:\d{2}/.test(line);
+            return line && !isMeta && !isTimestamp;
+          })
+          .map(line => line.replace(/<[^>]+>/g, '').trim());
+      
+        // 去除重複行
+        const uniqueLines = [...new Set(lines)];
+      
+        // 合併成單段落
+        return uniqueLines.join(' ');
+      };
 
     return (
         <div>
