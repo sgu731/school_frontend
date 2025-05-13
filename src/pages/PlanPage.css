@@ -1,0 +1,88 @@
+.week-nav-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.week-nav-btn {
+  padding: 6px 16px;
+  font-size: 0.95rem;
+  background-color: #eeeeee;
+  color: #333;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.week-nav-btn:hover {
+  background-color: #dcdcdc;
+}
+
+.week-nav-btn.primary {
+  background-color: #f57c00;
+  color: white;
+}
+
+.week-nav-btn.primary:hover {
+  background-color: #ef6c00;
+}
+
+.week-nav-date-picker {
+  padding: 6px 12px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+}
+
+.week-nav-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.week-nav-time-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* 開始時間選擇列 美編 */
+.week-nav-time-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.week-nav-label {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.week-nav-select {
+  padding: 6px 12px;
+  font-size: 0.95rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.week-nav-select:hover,
+.week-nav-select:focus {
+  border-color: #f57c00;
+  outline: none;
+}
