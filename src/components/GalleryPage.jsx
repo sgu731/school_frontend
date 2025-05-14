@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Tesseract from "tesseract.js";
-import { Button } from "../components/ui/button";
 import { Trash2, Brain } from "lucide-react";
 import axios from "axios";
+import "./GalleryPage.css";
 
 export default function GalleryPage() {
   const [images, setImages] = useState([]);
@@ -12,7 +12,6 @@ export default function GalleryPage() {
   const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
-  // 讀取圖片
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -27,7 +26,6 @@ export default function GalleryPage() {
     fetchImages();
   }, []);
 
-  // 刪除圖片
   const deleteImage = async (id) => {
     if (!window.confirm("確定要刪除這張圖片？")) return;
     try {
@@ -39,7 +37,6 @@ export default function GalleryPage() {
     }
   };
 
-  // OCR 並加入筆記
   const handleOCR = async (imageBase64) => {
     setLoading(true);
     try {
@@ -107,12 +104,12 @@ export default function GalleryPage() {
                 }}
               />
               <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
-                <Button variant="destructive" size="icon" onClick={() => deleteImage(img.id)}>
+                <button className="gallery-btn-icon" onClick={() => deleteImage(img.id)}>
                   <Trash2 size={16} />
-                </Button>
-                <Button size="icon" onClick={() => handleOCR(img.image_data)}>
+                </button>
+                <button className="gallery-btn-icon" onClick={() => handleOCR(img.image_data)}>
                   <Brain size={16} />
-                </Button>
+                </button>
               </div>
             </div>
           ))}
@@ -130,7 +127,7 @@ export default function GalleryPage() {
             />
             <button
               onClick={() => setPreviewImage(null)}
-              className="absolute top-2 right-2 bg-white text-black rounded-full px-3 py-1 text-sm shadow hover:bg-gray-200"
+              className="gallery-btn absolute top-2 right-2"
             >
               關閉
             </button>

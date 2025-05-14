@@ -1,4 +1,3 @@
-// NoteEditor.jsx
 import React from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -8,6 +7,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { Bold, Italic, Underline as UnderlineIcon, Highlighter, Eraser } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import "./NoteEditor.css"; 
 
 export default function NoteEditor({ value, onChange }) {
   const editor = useEditor({
@@ -29,16 +29,13 @@ export default function NoteEditor({ value, onChange }) {
   return (
     <div className="space-y-2">
       <TooltipProvider>
-        <ToggleGroup type="multiple" className="flex gap-1">
+        <ToggleGroup type="multiple" className="flex gap-1 flex-wrap">
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="bold"
-                aria-label="粗體"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                pressed={editor?.isActive("bold")}
-              >
-                <Bold className="w-4 h-4" />
+              <ToggleGroupItem asChild value="bold" aria-label="粗體" pressed={editor?.isActive("bold")}>
+                <button onClick={() => editor?.chain().focus().toggleBold().run()} className="note-editor-btn">
+                  <Bold className="w-4 h-4" />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>粗體</TooltipContent>
@@ -46,13 +43,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="italic"
-                aria-label="斜體"
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-                pressed={editor?.isActive("italic")}
-              >
-                <Italic className="w-4 h-4" />
+              <ToggleGroupItem asChild value="italic" aria-label="斜體" pressed={editor?.isActive("italic")}>
+                <button onClick={() => editor?.chain().focus().toggleItalic().run()} className="note-editor-btn">
+                  <Italic className="w-4 h-4" />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>斜體</TooltipContent>
@@ -60,13 +54,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="underline"
-                aria-label="底線"
-                onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                pressed={editor?.isActive("underline")}
-              >
-                <UnderlineIcon className="w-4 h-4" />
+              <ToggleGroupItem asChild value="underline" aria-label="底線" pressed={editor?.isActive("underline")}>
+                <button onClick={() => editor?.chain().focus().toggleUnderline().run()} className="note-editor-btn">
+                  <UnderlineIcon className="w-4 h-4" />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>底線</TooltipContent>
@@ -74,14 +65,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="highlight-yellow"
-                aria-label="黃螢光"
-                className="text-yellow-500"
-                onClick={() => editor?.chain().focus().toggleHighlight({ color: "yellow" }).run()}
-                pressed={editor?.isActive("highlight", { color: "yellow" })}
-              >
-                <Highlighter className="w-4 h-4" style={{ stroke: '#facc15' }} /> 
+              <ToggleGroupItem asChild value="highlight-yellow" aria-label="黃螢光" pressed={editor?.isActive("highlight", { color: "yellow" })}>
+                <button onClick={() => editor?.chain().focus().toggleHighlight({ color: "yellow" }).run()} className="note-editor-btn">
+                  <Highlighter className="w-4 h-4" style={{ stroke: '#facc15' }} />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>黃螢光</TooltipContent>
@@ -89,14 +76,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="highlight-green"
-                aria-label="綠螢光"
-                className="text-green-500" 
-                onClick={() => editor?.chain().focus().toggleHighlight({ color: "lightgreen" }).run()}
-                pressed={editor?.isActive("highlight", { color: "lightgreen" })}
-              >
-                <Highlighter className="w-4 h-4" style={{ stroke: '#4ade80' }} /> 
+              <ToggleGroupItem asChild value="highlight-green" aria-label="綠螢光" pressed={editor?.isActive("highlight", { color: "lightgreen" })}>
+                <button onClick={() => editor?.chain().focus().toggleHighlight({ color: "lightgreen" }).run()} className="note-editor-btn">
+                  <Highlighter className="w-4 h-4" style={{ stroke: '#4ade80' }} />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>綠螢光</TooltipContent>
@@ -104,14 +87,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="highlight-blue"
-                aria-label="藍螢光"
-                className="text-sky-500"
-                onClick={() => editor?.chain().focus().toggleHighlight({ color: "skyblue" }).run()}
-                pressed={editor?.isActive("highlight", { color: "skyblue" })}
-              >
-                <Highlighter className="w-4 h-4" style={{ stroke: '#38bdf8' }} /> 
+              <ToggleGroupItem asChild value="highlight-blue" aria-label="藍螢光" pressed={editor?.isActive("highlight", { color: "skyblue" })}>
+                <button onClick={() => editor?.chain().focus().toggleHighlight({ color: "skyblue" }).run()} className="note-editor-btn">
+                  <Highlighter className="w-4 h-4" style={{ stroke: '#38bdf8' }} />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>藍螢光</TooltipContent>
@@ -119,12 +98,10 @@ export default function NoteEditor({ value, onChange }) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <ToggleGroupItem
-                value="highlight-clear"
-                aria-label="清除螢光"
-                onClick={() => editor?.chain().focus().unsetHighlight().run()}
-              >
-                <Eraser className="w-4 h-4" />
+              <ToggleGroupItem asChild value="highlight-clear" aria-label="清除螢光">
+                <button onClick={() => editor?.chain().focus().unsetHighlight().run()} className="note-editor-btn">
+                  <Eraser className="w-4 h-4" />
+                </button>
               </ToggleGroupItem>
             </TooltipTrigger>
             <TooltipContent>清除螢光</TooltipContent>
@@ -134,10 +111,10 @@ export default function NoteEditor({ value, onChange }) {
 
       <div className="border border-gray-300 rounded-md bg-white p-2 focus-within:ring-2 focus-within:ring-gray-300">
         <EditorContent
-            editor={editor}
-            className="min-h-[200px] p-2 outline-none"
+          editor={editor}
+          className="min-h-[200px] p-2 outline-none"
         />
-        </div>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Camera, Upload, ImagePlus } from "lucide-react"; // ✅ 加入 ImagePlus
+import { Camera, Upload, ImagePlus } from "lucide-react";
 import axios from "axios";
+import "./CameraPage.css";
 
 export default function CameraPage() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -51,7 +51,7 @@ export default function CameraPage() {
     Array.from(e.target.files).forEach((file) => {
       const formData = new FormData();
       formData.append("image", file);
-  
+
       axios
         .post("http://localhost:5000/api/images", formData, {
           headers: {
@@ -69,21 +69,20 @@ export default function CameraPage() {
 
   const saveImage = async (imageDataUrl) => {
     try {
-      // 將 base64 轉為 blob 再變成 File
       const res = await fetch(imageDataUrl);
       const blob = await res.blob();
       const file = new File([blob], "photo.png", { type: "image/png" });
-  
+
       const formData = new FormData();
       formData.append("image", file);
-  
+
       await axios.post("http://localhost:5000/api/images", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-  
+
       alert("✅ 圖片已儲存到資料庫！");
     } catch (err) {
       console.error("圖片儲存失敗", err);
@@ -100,12 +99,12 @@ export default function CameraPage() {
         <div className="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50">
           <video ref={videoRef} autoPlay className="w-full max-w-md rounded shadow" />
           <div className="mt-4 flex gap-3">
-            <Button onClick={capturePhoto} className="bg-orange-500 text-white">
+            <button onClick={capturePhoto} className="camera-btn">
               擷取畫面
-            </Button>
-            <Button variant="outline" onClick={stopCamera}>
+            </button>
+            <button onClick={stopCamera} className="camera-btn">
               取消
-            </Button>
+            </button>
           </div>
           <canvas ref={canvasRef} className="hidden" />
         </div>
@@ -178,7 +177,7 @@ export default function CameraPage() {
           />
         </Card>
 
-        {/* ✅ 圖片庫 */}
+        {/* 圖片庫 */}
         <Card
           onClick={() => navigate("/gallery")}
           style={{
@@ -196,7 +195,7 @@ export default function CameraPage() {
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         >
-          <ImagePlus size={32} /> {/* ✅ 改圖示 */}
+          <ImagePlus size={32} />
           <p className="text-sm mt-2">圖片庫</p>
         </Card>
       </div>

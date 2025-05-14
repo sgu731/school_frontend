@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Button } from "../components/ui/button";
 import { Save, Plus, CheckCircle } from "lucide-react";
 import axios from "axios";
+import "./RecordingDetail.css"; 
 
 export default function RecordingDetail() {
   const { state } = useLocation();
@@ -15,7 +15,6 @@ export default function RecordingDetail() {
   const [successMessage, setSuccessMessage] = useState("");
   const [speed, setSpeed] = useState(1);
   const speedOptions = [0.5, 0.75, 1, 1.5, 2];
-
 
   const formatDate = (isoString) => {
     const date = new Date(isoString);
@@ -114,10 +113,10 @@ export default function RecordingDetail() {
 
       <audio ref={audioRef} controls src={state?.url} className="w-full my-2" />
 
-      <div className="flex items-center justify-center gap-4 text-sm mt-4">
-        <Button size="sm" onClick={() => skip(-5)}>⏮️ 倒轉5秒</Button>
-        <Button size="sm" onClick={() => skip(5)}>快轉5秒 ⏭️</Button>
-        <Button size="sm" onClick={toggleSpeed}>播放速度：{speed}x</Button>
+      <div className="flex items-center justify-center gap-4 text-sm mt-4 flex-wrap">
+        <button className="recording-detail-btn" onClick={() => skip(-5)}>⏮️ 倒轉5秒</button>
+        <button className="recording-detail-btn" onClick={() => skip(5)}>快轉5秒 ⏭️</button>
+        <button className="recording-detail-btn" onClick={toggleSpeed}>播放速度：{speed}x</button>
       </div>
 
       <div className="mt-6">
@@ -138,13 +137,16 @@ export default function RecordingDetail() {
         />
       </div>
 
-      <div className="border-t pt-6 mt-6 flex justify-between">
-        <Button variant="default" onClick={handleSaveChanges}>
-          <Save size={16} className="mr-2" />儲存變更
-        </Button>
-        <Button variant="outline" onClick={handleAddNote}>
-          <Plus size={16} className="mr-2" />加入筆記
-        </Button>
+      <div className="border-t pt-6 mt-6 flex justify-between flex-wrap gap-4">
+        <button className="recording-detail-btn" onClick={handleSaveChanges}>
+          <Save size={16} className="mr-2 inline-block" />
+          儲存變更
+        </button>
+
+        <button className="recording-detail-btn" onClick={handleAddNote}>
+          <Plus size={16} className="mr-2 inline-block" />
+          加入筆記
+        </button>
       </div>
     </div>
   );

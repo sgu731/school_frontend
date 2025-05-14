@@ -1,22 +1,19 @@
-// NoteDetailPage.jsx
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import MermaidRenderer from "./common/MermaidRenderer";
 import axios from "axios";
 import NoteEditor from "./NoteEditor";
+import "./NoteDetailPage.css";
 
 export default function NoteDetailPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { title: initialTitle, content: initialContent, date } = state || {};
-
-  console.log("initialContent from state:", initialContent);
+  const { title: initialTitle, content: initialContent } = state || {};
 
   const isValidTipTapJson = (data) => {
-  return data?.editor?.type === "doc" && Array.isArray(data?.editor?.content);
+    return data?.editor?.type === "doc" && Array.isArray(data?.editor?.content);
   };
 
   const parsed = (() => {
@@ -33,11 +30,9 @@ export default function NoteDetailPage() {
       ? parsed.editor
       : { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: initialContent || "" }] }] }
   );
-  
   const [analysisResults, setAnalysisResults] = useState(() =>
     isValidTipTapJson(parsed) ? parsed.analysis ?? [] : []
   );
-  
   const [selectedText, setSelectedText] = useState("");
   const [toolbarPosition, setToolbarPosition] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -58,13 +53,10 @@ export default function NoteDetailPage() {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         const viewportWidth = window.innerWidth;
-
         let centerX = (rect.left + rect.right) / 2;
         const safePadding = 100;
-
         if (centerX < safePadding) centerX = safePadding;
         else if (centerX > viewportWidth - safePadding) centerX = viewportWidth - safePadding;
-
         setSelectedText(selected);
         setToolbarPosition({ top: rect.top + window.scrollY - 50, left: centerX });
       } else {
@@ -79,7 +71,6 @@ export default function NoteDetailPage() {
 
   const handleMode = async (mode) => {
     if (!selectedText) return;
-
     const promptMap = {
       "考試模式": `請將以下內容整理成條列式重點，並提供每點的簡要補充說明：\n\n${selectedText}`,
       "報告模式": `請將以下內容轉換成一份報告圖表：\n\n${selectedText}`,
@@ -96,7 +87,6 @@ export default function NoteDetailPage() {
         { text: selectedText, prompt: promptMap[mode] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       const analysis = response.data.analysis || "⚠️ 無回應內容";
       setAnalysisResults((prev) => [...prev, { mode, content: analysis }]);
     } catch (err) {
@@ -113,7 +103,6 @@ export default function NoteDetailPage() {
     const token = localStorage.getItem("token");
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
     const now = new Date().toISOString();
-
     const fullContent = JSON.stringify({ editor: editorContent, analysis: analysisResults });
 
     try {
@@ -132,7 +121,6 @@ export default function NoteDetailPage() {
 
   const deleteNote = async () => {
     if (!window.confirm("❗確定要刪除這篇筆記嗎？")) return;
-
     const token = localStorage.getItem("token");
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
@@ -149,24 +137,26 @@ export default function NoteDetailPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="bg-orange-400 p-4 flex items-center justify-between gap-4 relative">
-        <Button variant="ghost" className="flex items-center gap-1" onClick={() => navigate("/notebook")}>
+        <button className="note-btn flex items-center gap-1" onClick={() => navigate("/notebook")}>
           <ArrowLeft size={18} />
-        </Button>
-        <div className="flex-1 text-center">
-          <input
-            ref={titleRef}
-            className="text-lg font-bold text-center bg-transparent outline-none w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="destructive" size="sm" onClick={deleteNote}>
-            刪除筆記
-          </Button>
-          <Button size="sm" onClick={saveChanges}>
-            儲存變更
-          </Button>
+        </button>
+
+        {/* ✅ 中央區塊：標題 + 按鈕並排 */}
+        <div className="flex-1 flex justify-center">
+          <div className="flex items-center gap-4 w-full max-w-[700px]">
+            <input
+              ref={titleRef}
+              className="flex-1 text-lg font-bold text-center bg-transparent outline-none"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <button className="note-btn" onClick={deleteNote}>
+              刪除筆記
+            </button>
+            <button className="note-btn" onClick={saveChanges}>
+              儲存變更
+            </button>
+          </div>
         </div>
       </div>
 
@@ -192,7 +182,7 @@ export default function NoteDetailPage() {
                 <button
                   key={mode}
                   onClick={() => handleMode(mode)}
-                  className={`px-4 py-2 hover:bg-gray-100 ${index < 2 ? "border-r border-gray-300" : ""}`}
+                  className={`note-btn ${index < 2 ? "border-r border-gray-300" : ""}`}
                 >
                   {mode}
                 </button>

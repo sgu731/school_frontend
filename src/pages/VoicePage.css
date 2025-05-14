@@ -1,0 +1,14 @@
+.voice-page-btn {
+    padding: 6px 16px;
+    font-size: 0.95rem;
+    background-color: #eeeeee;
+    color: #333;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .voice-page-btn:hover {
+    background-color: #dcdcdc;
+  }

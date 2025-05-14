@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
-import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./RecordingPage.css";
 
 export default function RecordingPage() {
   const navigate = useNavigate();
@@ -125,27 +125,28 @@ export default function RecordingPage() {
 
   return (
     <div className="mt-6 p-6">
-      <Button
+      <button
+        className="recording-btn mb-4"
         onClick={() => {
           stopRecording();
           navigate("/voice");
         }}
-        className="mb-4"
       >
         返回
-      </Button>
+      </button>
 
       <div className="flex flex-wrap items-center gap-4 mb-4">
-        <Button
+        <button
+          className="recording-btn"
           onClick={recording ? stopRecording : startRecording}
-          className="bg-orange-600 text-white"
         >
           {recording ? "儲存" : "🎙️ 開始錄音"}
-        </Button>
+        </button>
 
         {recording && (
           <>
-            <Button
+            <button
+              className="recording-btn"
               onClick={() => {
                 if (!mediaRecorderRef.current) return;
                 if (mediaRecorderRef.current.state === "recording") {
@@ -156,14 +157,13 @@ export default function RecordingPage() {
                 } else if (mediaRecorderRef.current.state === "paused") {
                   mediaRecorderRef.current.resume();
                   recognitionRef.current?.start();
-                  timerRef.current = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+                  timerRef.current = setInterval(() => setRecordingTime((prev) => prev + 1), 1000);
                   setPaused(false);
                 }
               }}
-              className="bg-yellow-500 text-white"
             >
               {paused ? "▶ 繼續" : "⏸ 暫停"}
-            </Button>
+            </button>
 
             <p className="text-sm text-gray-600">
               ⏱ 錄音時長：{Math.floor(recordingTime / 60).toString().padStart(2, "0")}:{(recordingTime % 60).toString().padStart(2, "0")}

@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./VoicePage.css"; 
 
 export default function VoicePage() {
   const navigate = useNavigate();
@@ -226,48 +227,44 @@ export default function VoicePage() {
 
       {view === "library" && (
         <div className="mt-6">
-          <Button onClick={() => setView(null)} className="mb-4">返回</Button>
+          <button onClick={() => setView(null)} className="voice-page-btn mb-4">返回</button>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...recordings].reverse().map((rec) => (
               <div key={rec.id} className="border rounded-xl p-4 shadow hover:shadow-md transition">
                 {editingId === rec.id ? (
                   <div className="flex items-center gap-2 mb-2">
                     <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="border p-1 rounded" />
-                    <Button size="sm" onClick={() => updateTitle(rec.id, editTitle)}>
-                      ✅ 儲存
-                    </Button>
-                    <Button size="sm" variant="secondary" onClick={() => setEditingId(null)}>❌ 取消</Button>
+                    <button className="voice-page-btn" onClick={() => updateTitle(rec.id, editTitle)}>✅ 儲存</button>
+                    <button className="voice-page-btn" onClick={() => setEditingId(null)}>❌ 取消</button>
                   </div>
                 ) : (
-                  <div 
-                    className="text-lg font-bold whitespace-nowrap cursor-pointer" 
+                  <div
+                    className="text-lg font-bold whitespace-nowrap cursor-pointer"
                     onClick={() => navigate("/recording-detail", { state: rec })}
                   >
                     {rec.title}
-                    <Button 
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setEditingId(rec.id);
                         setEditTitle(rec.title);
                       }}
-                      className="p-0 m-0 bg-transparent hover:bg-transparent text-blue-500 hover:text-blue-700 shadow-none border-none"
+                      className="voice-page-btn text-blue-500 hover:text-blue-700 p-1 ml-2"
                     >
                       <Pencil size={16} />
-                    </Button>
+                    </button>
                   </div>
                 )}
                 <p className="text-xs text-gray-300">{formatDate(rec.time)}</p>
                 <p className="text-sm text-gray-500">時長：{rec.duration}</p>
                 <audio controls src={rec.url} className="w-full my-2" />
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" onClick={() => downloadRecording(rec.url, rec.title)}>
-                    <Download size={16} className="mr-2" />下載音檔
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteRecording(rec.id)}>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <button className="voice-page-btn" onClick={() => downloadRecording(rec.url, rec.title)}>
+                    <Download size={16} className="mr-2 inline-block" />下載音檔
+                  </button>
+                  <button className="voice-page-btn" onClick={() => deleteRecording(rec.id)}>
                     🗑️ 刪除
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
