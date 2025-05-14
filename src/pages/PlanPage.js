@@ -44,7 +44,7 @@ const PlanPage = () => {
     const end   = new Date(weekDates[6]); end.setDate(end.getDate() + 7);
     const qs = `start=${start.toISOString().slice(0,10)}&end=${end.toISOString().slice(0,10)}`;
     try {
-      const res = await fetch(`http://localhost:5000/api/schedule?${qs}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/schedule?${qs}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -58,7 +58,7 @@ const PlanPage = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
     try {
-      const res  = await fetch('http://localhost:5000/api/study/subjects', {
+      const res  = await fetch(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -112,7 +112,7 @@ const PlanPage = () => {
   const handleAddPlan     = () => { setModalMode('add'); setModalData(null); setModalOpen(true); };
   const handleDeletePlan  = async id => {
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/schedule/${id}`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/api/schedule/${id}`, {
       method:'DELETE', headers:{ Authorization:`Bearer ${token}` }
     });
     await fetchPlans();
@@ -129,8 +129,8 @@ const PlanPage = () => {
 
     const token = localStorage.getItem('token');
     const url   = modalMode==='add'
-      ? 'http://localhost:5000/api/schedule'
-      : `http://localhost:5000/api/schedule/${modalData.id}`;
+      ? `${process.env.REACT_APP_API_URL}/api/schedule`
+      : `${process.env.REACT_APP_API_URL}/api/schedule/${modalData.id}`;
     const method = modalMode==='add' ? 'POST' : 'PUT';
     await fetch(url, {
       method,

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import axios from 'axios';
 
 // import HomePage from './pages/HomePage';
 import NotebookDashboard from './pages/NotebookDashboard';
@@ -22,12 +23,8 @@ import UserProfilePage from './pages/UserProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import GalleryPage from './components/GalleryPage';
 import NoteDetailPage from './components/NoteDetailPage';
-import RecordingDetail from './components/RecordingDetail'; 
 import TranscribePage from "./components/TranscribePage";
 import RecordingPage from "./components/RecordingPage";
-import ResetPasswordPage from './components/account/ResetPasswordPage';
-import ForgotPasswordPage from './components/account/ForgotPasswordPage';
-import StudyTimerTestPage from './pages/StudyTimerTestPage';
 
 const queryClient = new QueryClient();
 
@@ -37,27 +34,51 @@ function App() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [showEditNameModal, setShowEditNameModal] = useState(false);
     const [newName, setNewName] = useState('');
+    const [isLoading, setIsLoading] = useState(true); // 新增載入狀態
 
+    // 檢查 token 並恢復使用者狀態
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          fetch('http://localhost:5000/profile', {
-            headers: {
-              Authorization: `Bearer ${token}`
+        const checkAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await axios.get(`${process.env.REACT_APP_API_URL}/profile`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    if (response.data.success) {
+                        setUser(response.data.user);
+                        setIsLoggedIn(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        setIsLoggedIn(false);
+                        setUser(null);
+                    }
+                } catch (err) {
+                    console.error('Check auth error:', err);
+                    localStorage.removeItem('token');
+                    setIsLoggedIn(false);
+                    setUser(null);
+                }
             }
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.user) {
-                setIsLoggedIn(true);
-                setUser(data.user);
-              }
-            })
-            .catch(err => {
-              console.error('取得使用者資料失敗', err);
-            });
-        }
-      }, []);      
+            setIsLoading(false);
+        };
+
+        checkAuth();
+    }, []);
+
+    // 登出函數
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        setUser(null);
+    };
+
+    // 渲染載入狀態
+    if (isLoading) {
+        return <div>載入中...</div>;
+    }
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -69,28 +90,33 @@ function App() {
                         <input type="text" placeholder="搜尋" className="search-bar" />
                             <div className="user-icon">
                             {isLoggedIn ? (
-                                <Link to="/profile" className="user-link" style={{ display: 'flex', alignItems: 'center' }}>
-                                {user?.avatar ? (
-                                    <img
-                                    src={`http://localhost:5000${user.avatar}`}
-                                    alt="avatar"
-                                    style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        objectFit: 'cover',
-                                        marginRight: '8px'
-                                    }}
-                                    />
-                                ) : (
-                                    <span style={{ fontSize: '24px' }}>👤</span>
-                                )}
-                                Hi, {user?.name || '使用者'}
-                                </Link>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <Link to="/profile" className="user-link" style={{ display: 'flex', alignItems: 'center' }}>
+                                        {user?.avatar ? (
+                                            <img
+                                                src={`${process.env.REACT_APP_API_URL}${user.avatar}`}
+                                                alt="avatar"
+                                                style={{
+                                                    width: '32px',
+                                                    height: '32px',
+                                                    borderRadius: '50%',
+                                                    objectFit: 'cover',
+                                                    marginRight: '8px'
+                                                }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontSize: '24px' }}>👤</span>
+                                        )}
+                                        Hi, {user?.name || '使用者'}
+                                    </Link>
+                                    <button onClick={handleLogout} style={{ marginLeft: '10px', cursor: 'pointer' }}>
+                                        登出
+                                    </button>
+                                </div>
                             ) : (
-                                <Link to="/login" className="user-link">👤</Link>
+                                <Link to="/login" className="user-link">👤 登入</Link>
                             )}
-                            </div>
+                        </div>
                     </header>
 
                     {/* 左側選單 + 右側內容 */}
@@ -106,7 +132,6 @@ function App() {
                             <Link to="/forum">討論區</Link>
                             <Link to="/sharing">筆記分享</Link>
                             <Link to="/plan">讀書計畫</Link>
-                            <Link to="/study-test">讀書計時測試</Link>
                         </nav>
 
                         <div className="page-content">
@@ -131,12 +156,8 @@ function App() {
                                 <Route path="/sharing" element={<SharingPage />} />
                                 <Route path="/sharing/:id"element={<NoteDetail />} />
                                 <Route path="/note-detail" element={<NoteDetailPage />} />
-                                <Route path="/recording-detail" element={<RecordingDetail />} />
                                 <Route path="/transcribe" element={<TranscribePage />} />
                                 <Route path="/recording" element={<RecordingPage />} />
-                                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-                                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                                <Route path="/study-test" element={<StudyTimerTestPage />} />
                             </Routes>
                         </div>
                     </div>

@@ -83,7 +83,7 @@ export default function NoteDetailPage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/ai/analyze",
+        "http://localhost:5000/api/ai/analyze",
         { text: selectedText, prompt: promptMap[mode] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -107,7 +107,7 @@ export default function NoteDetailPage() {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/note/${state.id}`,
+        `${process.env.REACT_APP_API_URL}/api/note/${state.id}`,
         { title, content: fullContent, updatedAt: now },
         authHeader
       );
@@ -125,7 +125,7 @@ export default function NoteDetailPage() {
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
     try {
-      await axios.delete(`http://localhost:5000/api/note/${state.id}`, authHeader);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/note/${state.id}`, authHeader);
       alert("✅ 筆記已刪除！");
       navigate("/notebook", { state: { reload: true } });
     } catch (err) {

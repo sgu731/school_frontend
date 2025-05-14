@@ -53,7 +53,7 @@ export default function CameraPage() {
       formData.append("image", file);
 
       axios
-        .post("http://localhost:5000/api/images", formData, {
+        .post(`${process.env.REACT_APP_API_URL}/api/images`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -76,7 +76,7 @@ export default function CameraPage() {
       const formData = new FormData();
       formData.append("image", file);
 
-      await axios.post("http://localhost:5000/api/images", formData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/images`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

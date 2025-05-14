@@ -10,7 +10,7 @@ export default function NewPostPage() {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/categories")
+        fetch(`${process.env.REACT_APP_API_URL}/api/categories`)
             .then(res => res.json())
             .then(data => {
                 setCategories(data);
@@ -34,7 +34,7 @@ export default function NewPostPage() {
         }
 
         try {
-            const res = await fetch("http://localhost:5000/api/forum", {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/forum`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

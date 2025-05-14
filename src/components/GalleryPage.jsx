@@ -15,7 +15,7 @@ export default function GalleryPage() {
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/images", authHeader);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/images`, authHeader);
         setImages(res.data.images || []);
       } catch (err) {
         console.error("讀取圖片失敗", err);
@@ -29,7 +29,7 @@ export default function GalleryPage() {
   const deleteImage = async (id) => {
     if (!window.confirm("確定要刪除這張圖片？")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/images/${id}`, authHeader);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/images/${id}`, authHeader);
       setImages(images.filter((img) => img.id !== id));
     } catch (err) {
       console.error("刪除失敗", err);
@@ -53,7 +53,7 @@ export default function GalleryPage() {
       if (confirmAdd) {
         const now = new Date().toISOString();
         await axios.post(
-          "http://localhost:5000/api/note",
+          `${process.env.REACT_APP_API_URL}/api/note`,
           {
             title: "從圖片轉文字",
             content: text,

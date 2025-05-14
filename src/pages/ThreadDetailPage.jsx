@@ -14,7 +14,7 @@ export default function ThreadDetailPage() {
 
     // 載入討論串資料（含留言）
     useEffect(() => {
-        fetch(`http://localhost:5000/api/forum/${id}`)
+        fetch(`${process.env.REACT_APP_API_URL}/api/forum/${id}`)
             .then(res => {
                 if (!res.ok) throw new Error("找不到貼文");
                 return res.json();
@@ -46,7 +46,7 @@ export default function ThreadDetailPage() {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/forum/${id}/reply`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/forum/${id}/reply`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -41,13 +41,13 @@ function TranscribePage() {
         const formData = new FormData();
         formData.append('audio', file);
         response = await axios.post(
-          'http://localhost:5000/api/transcribe/transcribe',
+          `${process.env.REACT_APP_API_URL}/api/transcribe/transcribe`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else if (url) {
         response = await axios.post(
-          'http://localhost:5000/api/transcribe/youtube',
+          `${process.env.REACT_APP_API_URL}/api/transcribe/youtube`,
           { url },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -132,7 +132,7 @@ function TranscribePage() {
             onClick={async () => {
               try {
                 const response = await axios.post(
-                  "http://localhost:5000/api/note",
+                  `${process.env.REACT_APP_API_URL}/api/note`,
                   {
                     title: "語音轉錄筆記",
                     content: formatTranscription(transcription, source),

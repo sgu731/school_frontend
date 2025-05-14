@@ -44,7 +44,7 @@ const TrackerPage = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    fetch('http://localhost:5000/api/study/study-records', {
+    fetch(`${process.env.REACT_APP_API_URL}/api/study/study-records`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => res.json())

@@ -31,7 +31,7 @@ export default function RecordingDetail() {
 
     const fetchRecording = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/recordings/${state.id}`, authHeader);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/recordings/${state.id}`, authHeader);
         const data = res.data.recording;
         setTranscript(data.text || "");
         setTranslation(data.translation || "");
@@ -64,7 +64,7 @@ export default function RecordingDetail() {
   const handleSaveChanges = async () => {
     try {
       await axios.put(
-        `http://localhost:5000/api/recordings/${state.id}`,
+        `${process.env.REACT_APP_API_URL}/api/recordings/${state.id}`,
         {
           title: state?.title,
           text: transcript,
@@ -83,7 +83,7 @@ export default function RecordingDetail() {
   const handleAddNote = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/note",
+        `${process.env.REACT_APP_API_URL}/api/note`,
         {
           title: state?.title,
           content: `${transcript}\n\n${translation}`,

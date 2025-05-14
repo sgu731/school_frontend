@@ -14,7 +14,7 @@ export default function ForumPage() {
 
     // 抓分類（來自 /api/categories）
     useEffect(() => {
-        fetch("http://localhost:5000/api/categories")
+        fetch(`${process.env.REACT_APP_API_URL}/api/categories`)
             .then(res => res.json())
             .then(data => {
                 const all = [{ id: 0, name: "全部" }, ...data];
@@ -27,7 +27,7 @@ export default function ForumPage() {
 
     // 每次切換頁面時重新讀取討論串（含留言數）
     useEffect(() => {
-        fetch("http://localhost:5000/api/forum")
+        fetch(`${process.env.REACT_APP_API_URL}/api/forum`)
             .then(res => res.json())
             .then(data => {
                 const threadMap = {};
@@ -48,7 +48,7 @@ export default function ForumPage() {
     // 切換收藏
     const handleBookmarkToggle = async (id) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/forum/${id}/bookmark`, {
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/forum/${id}/bookmark`, {
                 method: "PATCH"
             });
             const result = await res.json();

@@ -6,7 +6,7 @@ export default function ChangePasswordModal({ onClose }) {
 
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:5000/profile/password', {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/profile/password`, {
       method: 'PATCH',
       headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
       body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })

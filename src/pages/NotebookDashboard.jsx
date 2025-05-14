@@ -29,7 +29,7 @@ export default function NotebookDashboard() {
 
   const loadNotes = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/note", authHeader);
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/note`, authHeader);
       const sorted = res.data.notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
       setNotes(sorted);
     } catch (err) {
@@ -61,7 +61,7 @@ export default function NotebookDashboard() {
     };
   
     try {
-      const res = await axios.post("http://localhost:5000/api/note", newNote, authHeader);
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/note`, newNote, authHeader);
       const createdNote = res.data.note;
       setNotes([createdNote, ...notes]);
       navigate("/note-detail", { state: createdNote });
@@ -80,7 +80,7 @@ export default function NotebookDashboard() {
     const now = new Date().toISOString();
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/note/${editingNoteId}`,
+        `${process.env.REACT_APP_API_URL}/api/note/${editingNoteId}`,
         { title: editTitle, content: editContent, updatedAt: now },
         authHeader
       );
@@ -103,7 +103,7 @@ export default function NotebookDashboard() {
     if (!window.confirm("確定要刪除這筆筆記嗎？")) return;
   
     try {
-      await axios.delete(`http://localhost:5000/api/note/${id}`, authHeader);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/note/${id}`, authHeader);
       setNotes(notes.filter((note) => note.id !== id));
     } catch (err) {
       console.error("刪除筆記失敗", err);

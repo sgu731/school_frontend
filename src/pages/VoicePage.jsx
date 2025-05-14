@@ -31,7 +31,7 @@ export default function VoicePage() {
   useEffect(() => {
     const fetchRecordings = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/recordings", authHeader);
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/recordings`, authHeader);
         setRecordings(res.data.recordings || []);
       } catch (err) {
         console.error("讀取錄音失敗", err);
@@ -78,7 +78,7 @@ export default function VoicePage() {
       formData.append("translation", translated);
 
       try {
-        const res = await axios.post("http://localhost:5000/api/recordings", formData, authHeader);
+        const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/recordings`, formData, authHeader);
         setRecordings((prev) => [...prev, res.data.recording]);
       } catch (err) {
         console.error("錄音儲存失敗", err);
@@ -138,7 +138,7 @@ export default function VoicePage() {
 
   const deleteRecording = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/recordings/${id}`, authHeader);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/recordings/${id}`, authHeader);
       setRecordings(recordings.filter((r) => r.id !== id));
     } catch (err) {
       console.error("刪除錄音失敗", err);
@@ -148,7 +148,7 @@ export default function VoicePage() {
   const updateTitle = async (id, newTitle) => {
     try {
       const res = await axios.put(
-        `http://localhost:5000/api/recordings/${id}`,
+        `${process.env.REACT_APP_API_URL}/api/recordings/${id}`,
         { title: newTitle },
         authHeader
       );

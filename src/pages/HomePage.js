@@ -33,7 +33,7 @@ function HomePage() {
     // 驗證 JWT
     const validateToken = async (token) => {
         try {
-            const response = await fetch('http://localhost:5000/profile', {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/profile`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -56,7 +56,7 @@ function HomePage() {
 
     // 處理登入
     const handleLogin = async () => {
-        const response = await fetch('http://localhost:5000/login', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ function HomePage() {
     // 新增科目
     const addSubject = async () => {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/study/subjects', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ function HomePage() {
     };
 
     const fetchSubjects = async (token) => {
-        const response = await fetch('http://localhost:5000/api/study/subjects', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -125,7 +125,7 @@ function HomePage() {
 
     // 獲取使用者的讀書紀錄
     const fetchStudyRecords = async (token) => {
-        const response = await fetch('http://localhost:5000/api/study/study-records', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/study/study-records`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -158,7 +158,7 @@ function HomePage() {
         // 保存紀錄到後端
         const token = localStorage.getItem('token');
         console.log('新增科目 token:', token);
-        const response = await fetch('http://localhost:5000/api/study/study-records', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/study/study-records`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

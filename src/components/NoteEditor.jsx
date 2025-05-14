@@ -5,8 +5,8 @@ import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Bold, Italic, Underline as UnderlineIcon, Highlighter, Eraser } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "./ui/toggle-group";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { ToggleGroup, ToggleGroupItem } from '@radix-ui/react-toggle-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip';
 import "./NoteEditor.css"; 
 
 export default function NoteEditor({ value, onChange }) {

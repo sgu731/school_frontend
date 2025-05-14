@@ -1,7 +1,7 @@
 // scheduleAPI.js
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000/api/schedule';
+const API_BASE = `${process.env.REACT_APP_API_URL}/api/schedule`;
 
 export const fetchScheduleByDate = (date, token) =>
   axios.get(API_BASE, {

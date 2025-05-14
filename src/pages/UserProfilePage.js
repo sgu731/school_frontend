@@ -21,7 +21,7 @@ export default function UserProfile({ user, setUser, setIsLoggedIn }) {
       return;
     }
 
-    const res = await fetch('http://localhost:5000/profile', {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}0/profile`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ name: newName })
@@ -51,7 +51,7 @@ export default function UserProfile({ user, setUser, setIsLoggedIn }) {
       <div>
         {user?.avatar ? (
           <img
-            src={`http://localhost:5000${user.avatar}`}
+            src={`${process.env.REACT_APP_API_URL}${user.avatar}`}
             alt="Avatar"
             className="worker-avatar"
           />

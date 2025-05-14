@@ -11,7 +11,7 @@ function NoteDetail() {
 
     useEffect(() => {
         // 抓單篇筆記內容
-        fetch(`http://localhost:5000/api/notes/${id}`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/notes/${id}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -24,7 +24,7 @@ function NoteDetail() {
             });
 
         // 抓留言串
-        fetch(`http://localhost:5000/api/notes/${id}/replies`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/notes/${id}/replies`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -44,7 +44,7 @@ function NoteDetail() {
     const handleAddComment = () => {
         if (newComment.trim() === "") return;
 
-        fetch(`http://localhost:5000/api/notes/${id}/replies`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/notes/${id}/replies`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

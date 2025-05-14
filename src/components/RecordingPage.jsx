@@ -108,7 +108,7 @@ export default function RecordingPage() {
         formData.append("translation", translated);
 
         try {
-          await axios.post("http://localhost:5000/api/recordings", formData, authHeader);
+          await axios.post(`${process.env.REACT_APP_API_URL}/api/recordings`, formData, authHeader);
           alert("✅ 錄音已儲存至語音庫");
         } catch (err) {
           console.error("儲存失敗", err);

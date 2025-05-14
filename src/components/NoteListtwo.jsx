@@ -9,7 +9,7 @@ function NoteListtwo() {
 
     //抓
     useEffect(() => {
-        fetch("http://localhost:5000/api/notes", {
+        fetch(`${process.env.REACT_APP_API_URL}/api/notes`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -21,7 +21,7 @@ function NoteListtwo() {
 
     // 切換收藏狀態
     const toggleBookmark = (id) => {
-        fetch(`http://localhost:5000/api/notes/${id}/bookmark`, {
+        fetch(`${process.env.REACT_APP_API_URL}/api/notes/${id}/bookmark`, {
             method: "PATCH",
             headers: {
                 Authorization: `Bearer ${token}`
