@@ -10,6 +10,7 @@ function RoomsPage() {
     const [roomName, setRoomName] = useState('');
     const [maxMembers, setMaxMembers] = useState(1);
     const [password, setPassword] = useState('');
+    const [desc, setDesc] = useState(''); // 新增房間描述
     const [joinRoomId, setJoinRoomId] = useState('');
     //const [joinPassword, setJoinPassword] = useState('');
     const [inviteCode, setInviteCode] = useState('');
@@ -124,7 +125,7 @@ function RoomsPage() {
 
             const response = await axios.post(
                 `${process.env.REACT_APP_API_URL}/api/rooms`,
-                { name: roomName, max_members: parseInt(maxMembers), password: password || undefined },
+                { name: roomName, max_members: parseInt(maxMembers), password: password || undefined, desc: desc || undefined },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );
             if (response.data.success) {
@@ -133,6 +134,7 @@ function RoomsPage() {
                 setRoomName('');
                 setMaxMembers(10);
                 setPassword('');
+                setDesc(''); // 清空描述
                 setMessage('房間創建成功');
                 // 創建後導航到 /studyroom
                 navigate('/studyroom');                
@@ -439,6 +441,12 @@ function RoomsPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
+                <input
+                    type="text"
+                    placeholder="輸入房間描述（可選）"
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                />
                 <button onClick={handleCreateRoom} disabled={loading}>
                     {loading ? '創建中...' : '創建自習室'}
                 </button>
@@ -497,6 +505,11 @@ function RoomsPage() {
                                         ID: {room.id} - {room.name} ({getStatusName(room.status)}, 人數: {room.current_members}/{room.max_members}
                                         {room.has_password ? ' 有密碼' : ''})
                                     </span>
+                                    {room.desc && (
+                                        <p className="room-desc" style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.5rem' }}>
+                                            {room.desc}
+                                        </p>
+                                    )}
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                                     <span style={{ fontSize: "0.9rem", color: "#555" }}>

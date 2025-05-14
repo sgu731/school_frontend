@@ -224,3 +224,8 @@ input[type="text"], input[type="number"], input[type="password"] {
     font-size: 0.9rem;
     color: #a88778;
 }
+
+.room-desc {
+    color: #555;
+    font-style: bold;
+}

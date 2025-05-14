@@ -1,35 +1,86 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./RoomsPage.css";
 
 export default function StudyRoom() {
     const navigate = useNavigate();
-    const [roomInfo, setRoomInfo] = useState({});
+    const token = localStorage.getItem("token");
+    const [roomInfo, setRoomInfo] = useState(null);
     const [members, setMembers] = useState([]);
+    const [subjects, setSubjects] = useState([]);
     const [isStudying, setIsStudying] = useState(false);
     const [studyTime, setStudyTime] = useState(0);
     const [selectedSubject, setSelectedSubject] = useState("");
     const [startTime, setStartTime] = useState(null);
     const [selectedMember, setSelectedMember] = useState(null);
     const [messageText, setMessageText] = useState("");
-    const subjectList = ["C", "Python", "JAVA"];
+    const [error, setError] = useState("");
+    const [newSubject, setNewSubject] = useState(""); // 新增科目輸入
 
+    // 獲取房間資訊、成員和科目
     useEffect(() => {
-        setRoomInfo({
-            id: 1,
-            name: "Room A",
-            creator_name: "Tina",
-            tagline: "愛讀書的一群傢伙 💪",
-        });
+        const fetchData = async () => {
+            if (!token) {
+                setError("請先登入");
+                navigate("/login");
+                return;
+            }
 
-        setMembers([
-            { id: 1, name: "最愛數學的Tina", online: true, studyTime: "3 小時 15 分" },
-            { id: 2, name: "Jessica", online: true, studyTime: "2 小時 5 分" },
-            { id: 3, name: "Robert", online: true, studyTime: "20 分鐘" },
-            { id: 4, name: "Toby", online: false, studyTime: "0 分鐘" },
-        ]);
-    }, []);
+            try {
+                // 獲取當前房間
+                const roomResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/rooms/current`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (roomResponse.data.success && roomResponse.data.room) {
+                    setRoomInfo({
+                        id: roomResponse.data.room.id,
+                        name: roomResponse.data.room.name,
+                        creator_name: roomResponse.data.room.creator_name,
+                        desc: roomResponse.data.room.desc || "一起努力學習吧！",
+                    });
+                } else {
+                    setError("未加入任何房間");
+                    navigate("/rooms");
+                    return;
+                }
 
+                // 獲取房間成員
+                const membersResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/rooms/current/members`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (membersResponse.data.success) {
+                    setMembers(membersResponse.data.members || []);
+                } else {
+                    setError("無法載入成員列表：" + (membersResponse.data.error || "未知錯誤"));
+                }
+                console.log(membersResponse.data.members);
+
+                // 獲取科目列表
+                const subjectsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (subjectsResponse.data.success) {
+                    setSubjects(subjectsResponse.data.subjects || []);
+                } else {
+                    setError("無法載入科目列表：" + (subjectsResponse.data.error || "未知錯誤"));
+                }
+            } catch (err) {
+                console.error("Fetch data error:", err);
+                setError("載入資料失敗：" + (err.response?.data?.error || err.message));
+                navigate("/rooms");
+            }
+        };
+        if (token) {
+            (async () => {
+                await fetchData();
+            })();
+            const intervalId = setInterval(fetchData, 1000);
+            return () => clearInterval(intervalId); // 清理間隔計時器
+        }
+    }, [token, navigate]);
+
+    // 學習計時器
     useEffect(() => {
         let timer;
         if (isStudying) {
@@ -42,43 +93,117 @@ export default function StudyRoom() {
 
     const toggleStudy = async () => {
         if (!isStudying && !selectedSubject) {
-            alert("請先選擇科目！");
+            setError("請先選擇科目！");
             return;
         }
 
+        let currentSubject = selectedSubject;
+
         if (!isStudying) {
             setStartTime(Date.now());
+            setIsStudying(true);
+            // 更新狀態為學習中 (status: 1)
+            try {
+                await axios.post(
+                    `${process.env.REACT_APP_API_URL}/api/rooms/current/status`,
+                    { status: 1 },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+            } catch (err) {
+                console.error("Update status error:", err);
+                setError("更新學習狀態失敗：" + (err.response?.data?.error || err.message));
+            }
         } else {
-            //結束學習時計算總秒數
             const endTime = Date.now();
             const durationInSeconds = Math.floor((endTime - startTime) / 1000);
 
             try {
-                const token = localStorage.getItem("token");
-                const response = await fetch(`${process.env.REACT_APP_API_URL}/api/study/study-records`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        subjectId: findSubjectId(selectedSubject), 
-                        duration: durationInSeconds,
-                    }),
-                });
+                const subjectId = findSubjectId(currentSubject);
+                if (!subjectId) {
+                    setError("無效的科目，請重新選擇");
+                    setIsStudying(false);
+                    return;
+                }
 
-                if (response.ok) {
-                    console.log('✅ 學習紀錄已成功上傳到後端');
+                const response = await axios.post(
+                    `${process.env.REACT_APP_API_URL}/api/study/study-records`,
+                    {
+                        subjectId,
+                        duration: durationInSeconds,
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                if (response.data.success) {
+                    console.log("✅ 學習紀錄已成功上傳到後端");
+                    setStudyTime(0);
+                    setIsStudying(false);
+                    // 更新狀態為休息中 (status: 0)
+                    await axios.post(
+                        `${process.env.REACT_APP_API_URL}/api/rooms/current/status`,
+                        { status: 0 },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
                 } else {
-                    console.error('❌ 上傳失敗');
+                    setError("上傳學習紀錄失敗：" + response.data.error);
                 }
             } catch (error) {
-                console.error('❌ 上傳時發生錯誤:', error);
+                setError("上傳學習紀錄失敗：" + (error.response?.data?.error || error.message));
             }
         }
-        setStudyTime(0);
-        setSelectedSubject("");  
-        setIsStudying(!isStudying);
+    };
+
+    const handleAddSubject = async () => {
+        if (!newSubject.trim()) {
+            setError("請輸入科目名稱");
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_API_URL}/api/study/subjects`,
+                { name: newSubject.trim() },
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const subjectsResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (subjectsResponse.data.success) {
+                    setSubjects(subjectsResponse.data.subjects || []);
+                    setNewSubject("");
+                    setError("");
+                }
+            } else {
+                setError("新增科目失敗：" + response.data.error);
+            }
+        } catch (err) {
+            setError("新增科目失敗：" + (err.response?.data?.error || err.message));
+        }
+    };
+
+    const handleBackToRooms = async () => {
+        if (isStudying) {
+            const confirmLeave = window.confirm("你正在學習中，離開將停止計時並記錄學習時間，是否繼續？");
+            if (!confirmLeave) {
+                return;
+            }
+
+            // 停止學習並記錄
+            await toggleStudy();
+        }
+        navigate("/rooms");
     };
 
     const formatTime = (seconds) => {
@@ -94,28 +219,35 @@ export default function StudyRoom() {
         day: "numeric",
     });
 
-    const activeCount = members.filter((m) => m.online).length;
-    // 模擬 subject name 對應到 id 的表
-    const subjectIdMap = {
-        "C": 1,
-        "Python": 2,
-        "JAVA": 3,
-    };
+    const activeCount = members.filter((m) => m.status === 1).length;
 
     const findSubjectId = (subjectName) => {
-        return subjectIdMap[subjectName] || null;
+        const subject = subjects.find((s) => s.name === subjectName);
+        return subject ? subject.id : null;
     };
 
+    const getStatusText = (status) => {
+        switch (status) {
+            case 1: return "學習中";
+            case 0: default: return "休息中";
+        }
+    };
 
     return (
         <div style={{ padding: "2rem" }}>
-            <button className="back-btn" onClick={() => navigate("/rooms")}>← 回到自習室列表</button>
+            {error && <p className="message" style={{ color: "#dc3545" }}>{error}</p>}
 
-            <div className="studyroom-banner">
-                <h2>{roomInfo.name}</h2>
-                <p className="tagline">{roomInfo.tagline || "一起努力學習吧！"}</p>
-                <p className="date">{today}</p>
-            </div>
+            <button className="back-btn" onClick={handleBackToRooms}>
+                ← 回到自習室列表
+            </button>
+
+            {roomInfo && (
+                <div className="studyroom-banner">
+                    <h2>{roomInfo.name}</h2>
+                    <p className="tagline">{roomInfo.desc}</p>
+                    <p className="date">{today}</p>
+                </div>
+            )}
 
             <div style={{ borderTop: "1px solid #ccc", paddingTop: "1rem", marginBottom: "2rem" }}>
                 <p>
@@ -123,19 +255,37 @@ export default function StudyRoom() {
                 </p>
 
                 {!isStudying && (
-                    <select
-                        value={selectedSubject}
-                        onChange={(e) => setSelectedSubject(e.target.value)}
-                        style={{ marginRight: "1rem", padding: "6px" }}
-                    >
-                        <option value="">選擇科目</option>
-                        {subjectList.map((subj, i) => (
-                            <option key={i} value={subj}>{subj}</option>
-                        ))}
-                    </select>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <select
+                            value={selectedSubject}
+                            onChange={(e) => setSelectedSubject(e.target.value)}
+                            style={{ padding: "6px" }}
+                        >
+                            <option value="">選擇科目</option>
+                            {subjects.map((subj) => (
+                                <option key={subj.id} value={subj.name}>
+                                    {subj.name}
+                                </option>
+                            ))}
+                        </select>
+                        <input
+                            type="text"
+                            placeholder="新增科目"
+                            value={newSubject}
+                            onChange={(e) => setNewSubject(e.target.value)}
+                            style={{ padding: "6px", width: "150px" }}
+                        />
+                        <button
+                            className="enter-btn"
+                            onClick={handleAddSubject}
+                            style={{ padding: "6px 12px" }}
+                        >
+                            新增
+                        </button>
+                    </div>
                 )}
 
-                <button className="enter-btn" onClick={toggleStudy}>
+                <button className="enter-btn" onClick={toggleStudy} style={{ marginTop: "1rem" }}>
                     {isStudying ? "停止學習" : "開始學習"}
                 </button>
 
@@ -152,7 +302,7 @@ export default function StudyRoom() {
                         style={{ cursor: "pointer" }}
                     >
                         <div className="room-info">
-                            <div className={`status-dot ${member.online ? "status-online" : "status-offline"}`} />
+                            <div className={`status-dot ${member.status === 1 ? "status-online" : "status-offline"}`} />
                             <strong>{member.name}</strong>
                         </div>
                         <span style={{ fontSize: "0.9rem", color: "#666" }}>{member.studyTime}</span>
@@ -163,15 +313,22 @@ export default function StudyRoom() {
             {selectedMember && (
                 <div className="member-modal">
                     <div className="member-card">
-                        <button className="close-btn" onClick={() => setSelectedMember(null)}>×</button>
+                        <button className="close-btn" onClick={() => setSelectedMember(null)}>
+                            ×
+                        </button>
                         <img
-                            src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${selectedMember.name}`}
+                            src={
+                                selectedMember.avatar
+                                    ? `${process.env.REACT_APP_API_URL}${selectedMember.avatar}`
+                                    : `https://api.dicebear.com/7.x/thumbs/svg?seed=${selectedMember.name}`
+                            }
                             alt="avatar"
                             className="member-avatar"
                         />
                         <h3>{selectedMember.name}</h3>
-                        <p>開始：10點08分</p>
-                        <p>狀態：{selectedMember.online ? "學習中" : "休息中"}</p>
+                        <p>開始：{selectedMember.startTime || "未知"}</p>
+                        <p>狀態：{getStatusText(selectedMember.status)}</p>
+                        {/*
                         <textarea
                             placeholder="傳送訊息給他..."
                             value={messageText}
@@ -184,8 +341,9 @@ export default function StudyRoom() {
                                 setMessageText("");
                             }}
                         >
-                            傳送 
+                            傳送
                         </button>
+                        */}
                     </div>
                 </div>
             )}
