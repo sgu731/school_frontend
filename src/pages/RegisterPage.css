@@ -1,5 +1,5 @@
-/* 忘記密碼頁面專屬樣式 */
-.forgot-password-page {
+/* 註冊頁面專屬樣式 */
+.register-page {
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -9,7 +9,7 @@
     overflow: hidden;
 }
 
-.forgot-password-page .forgot-password-container {
+.register-page .register-container {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -21,7 +21,7 @@
     animation: fadeIn 0.5s ease-in-out;
 }
 
-.forgot-password-page h1 {
+.register-page h1 {
     font-size: 2rem;
     font-weight: 700;
     color: #1a202c;
@@ -30,24 +30,24 @@
     animation: slideDown 0.5s ease-in-out;
 }
 
-.forgot-password-page .form-group {
+.register-page .form-group {
     margin-bottom: 1.5rem;
 }
 
-.forgot-password-page .input-wrapper {
+.register-page .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.forgot-password-page .input-icon {
+.register-page .input-icon {
     position: absolute;
     left: 1rem;
     color: #6b7280;
     transition: color 0.2s;
 }
 
-.forgot-password-page .form-group input {
+.register-page .form-group input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 3rem;
     font-size: 1rem;
@@ -55,22 +55,22 @@
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.2);
     color: #1a202c;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
     box-sizing: border-box;
 }
 
-.forgot-password-page .form-group input:focus {
+.register-page .form-group input:focus {
     outline: none;
     border-color: var(--primary-orange);
     background: rgba(255, 255, 255, 0.3);
     box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
 }
 
-.forgot-password-page .form-group input:focus + .input-icon {
+.register-page .form-group input:focus + .input-icon {
     color: var(--primary-orange);
 }
 
-.forgot-password-page .reset-btn {
+.register-page .register-btn {
     width: 100%;
     padding: 0.75rem;
     font-size: 1.1rem;
@@ -85,18 +85,13 @@
     animation: fadeIn 0.5s ease-in-out 0.2s backwards;
 }
 
-.forgot-password-page .reset-btn:hover:not(:disabled) {
+.register-page .register-btn:hover {
     transform: scale(1.02);
     box-shadow: 0 0 15px rgba(245, 124, 0, 0.4);
     background: var(--primary-orange-hover);
 }
 
-.forgot-password-page .reset-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-.forgot-password-page .message {
+.register-page .message {
     text-align: center;
     margin-top: 1rem;
     font-size: 0.95rem;
@@ -104,13 +99,13 @@
     animation: fadeIn 0.5s ease-in-out;
 }
 
-.forgot-password-page .back-arrow-container {
+.register-page .back-arrow-container {
     position: absolute;
     top: 1rem;
     left: 1rem;
 }
 
-.forgot-password-page .back-arrow {
+.register-page .back-arrow {
     background: none;
     border: none;
     padding: 0.5rem;
@@ -123,99 +118,18 @@
     animation: fadeIn 0.5s ease-in-out;
 }
 
-.forgot-password-page .back-arrow:hover {
+.register-page .back-arrow:hover {
     transform: scale(1.1);
     background: rgba(245, 124, 0, 0.1);
 }
 
-.forgot-password-page .back-arrow svg {
+.register-page .back-arrow svg {
     color: #1a202c;
     transition: color 0.2s;
 }
 
-.forgot-password-page .back-arrow:hover svg {
+.register-page .back-arrow:hover svg {
     color: var(--primary-orange);
-}
-
-.upload-avatar-card {
-  padding: 15px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.upload-title {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.upload-avatar-card .avatar-preview {
-  margin-bottom: 15px;
-}
-
-.upload-avatar-card .avatar-preview-img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #ddd;
-  transition: transform 0.3s ease;
-}
-
-.upload-avatar-card .avatar-preview-img:hover {
-  transform: scale(1.05);
-}
-
-.upload-avatar-card .avatar-placeholder {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
-  color: #666;
-  border: 2px solid #ddd;
-}
-
-.upload-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.select-file-btn {
-  padding: 8px 16px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-align: center;
-}
-
-.select-file-btn:hover {
-  background-color: #5a6268;
-}
-
-.upload-btn {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.upload-btn:hover {
-  background-color: #0056b3;
 }
 
 /* 動畫 */
@@ -231,54 +145,54 @@
 
 /* 響應式設計 */
 @media (max-width: 768px) {
-    .forgot-password-page .forgot-password-container {
+    .register-page .register-container {
         padding: 1.5rem;
         max-width: 360px;
     }
 
-    .forgot-password-page h1 {
+    .register-page h1 {
         font-size: 1.75rem;
     }
 
-    .forgot-password-page .form-group input {
+    .register-page .form-group input {
         padding: 0.6rem 0.9rem 0.6rem 3rem;
     }
 
-    .forgot-password-page .reset-btn {
+    .register-page .register-btn {
         padding: 0.6rem;
         font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .forgot-password-page {
+    .register-page {
         padding: 0.5rem;
     }
 
-    .forgot-password-page .forgot-password-container {
+    .register-page .register-container {
         padding: 1rem;
         max-width: 300px;
     }
 
-    .forgot-password-page h1 {
+    .register-page h1 {
         font-size: 1.5rem;
     }
 
-    .forgot-password-page .form-group input {
+    .register-page .form-group input {
         padding: 0.5rem 0.75rem 0.5rem 2.5rem;
     }
 
-    .forgot-password-page .input-icon {
+    .register-page .input-icon {
         left: 0.75rem;
         size: 18px;
     }
 
-    .forgot-password-page .reset-btn {
+    .register-page .register-btn {
         padding: 0.5rem;
         font-size: 0.95rem;
     }
 
-    .forgot-password-page .message {
+    .register-page .message {
         font-size: 0.9rem;
     }
 }

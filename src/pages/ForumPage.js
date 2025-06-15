@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./ForumPage.css";
+import { useTranslation } from "react-i18next"; // 導入 useTranslation
 
 export default function ForumPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t } = useTranslation('forum'); // 指定 forum 命名空間
 
-    const [categories, setCategories] = useState([{ id: 0, name: "全部" }]);
-    const [selectedCategory, setSelectedCategory] = useState("全部");
-
+    const [categories, setCategories] = useState([{ id: 0, name: t('all') }]);
+    const [selectedCategory, setSelectedCategory] = useState(t('all'));
     const [threads, setThreads] = useState({});
     const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
 
@@ -17,13 +18,13 @@ export default function ForumPage() {
         fetch(`${process.env.REACT_APP_API_URL}/api/categories`)
             .then(res => res.json())
             .then(data => {
-                const all = [{ id: 0, name: "全部" }, ...data];
+                const all = [{ id: 0, name: t('all') }, ...data];
                 setCategories(all);
             })
             .catch(err => {
                 console.error("讀取分類失敗", err);
             });
-    }, []);
+    }, [t]); // 加入 t 作為依賴項以確保語言切換時更新
 
     // 每次切換頁面時重新讀取討論串（含留言數）
     useEffect(() => {
@@ -70,7 +71,7 @@ export default function ForumPage() {
 
     // 篩選分類與收藏
     const filteredThreads = Object.entries(threads).filter(([id, thread]) => {
-        const matchCategory = selectedCategory === "全部" || thread.category === selectedCategory;
+        const matchCategory = selectedCategory === t('all') || thread.category === selectedCategory;
         const matchBookmark = !showBookmarkedOnly || thread.bookmarked;
         return matchCategory && matchBookmark;
     });
@@ -78,9 +79,9 @@ export default function ForumPage() {
     return (
         <div className="forum-container">
             <div className="forum-header">
-                <h2>討論區</h2>
+                <h2>{t('forumTitle')}</h2>
                 <button className="new-post-button" onClick={() => navigate("/forum/new")}>
-                    ＋ 發表新文章
+                    {t('newPost')}
                 </button>
             </div>
 
@@ -98,7 +99,7 @@ export default function ForumPage() {
                     className={`bookmark-toggle ${showBookmarkedOnly ? "active" : ""}`}
                     onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
                 >
-                    ⭐ 只看收藏
+                    {t('showBookmarkedOnly')}
                 </button>
             </div>
 
@@ -113,8 +114,8 @@ export default function ForumPage() {
                             <h3>{thread.title}</h3>
                             <div className="thread-meta">
                                 <span>{thread.category}</span>
-                                <span>{thread.replyCount ?? 0} 回覆</span>
-                                <span>{thread.favorites} 收藏</span>
+                                <span>{t('replies', { count: thread.replyCount ?? 0 })}</span>
+                                <span>{t('favorites', { count: thread.favorites })}</span>
                                 <span>{thread.date}</span>
                             </div>
                         </div>

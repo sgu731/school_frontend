@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import './App.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
+import i18n from './i18n'; // 假設你創建了 i18n.js 配置文件
 
 // import HomePage from './pages/HomePage';
 import NotebookDashboard from './pages/NotebookDashboard';
@@ -25,6 +27,7 @@ import GalleryPage from './components/GalleryPage';
 import NoteDetailPage from './components/NoteDetailPage';
 import TranscribePage from "./components/TranscribePage";
 import RecordingPage from "./components/RecordingPage";
+import ForgotPasswordPage from './components/account/ForgotPasswordPage';
 
 const queryClient = new QueryClient();
 
@@ -35,6 +38,7 @@ function App() {
     const [showEditNameModal, setShowEditNameModal] = useState(false);
     const [newName, setNewName] = useState('');
     const [isLoading, setIsLoading] = useState(true); // 新增載入狀態
+    const { t } = useTranslation('common'); // 指定 common 命名空間
 
     // 檢查 token 並恢復使用者狀態
     useEffect(() => {
@@ -66,7 +70,15 @@ function App() {
         };
 
         checkAuth();
-    }, []);
+        // 檢查是否需要跳轉到登入頁面
+        if (!isLoading) {
+            const currentPath = window.location.pathname;
+            const publicPaths = ['/login', '/register'];
+            if (!isLoggedIn && !publicPaths.includes(currentPath)) {
+                window.location.replace('/login'); // 使用 window.location.replace 替代 useNavigate
+            }
+        }
+    }, [isLoggedIn, isLoading]); // 監聽 isLoggedIn 和 isLoading 的變化
 
     // 登出函數
     const handleLogout = () => {
@@ -75,93 +87,167 @@ function App() {
         setUser(null);
     };
 
+    // 語言切換函數
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
+
     // 渲染載入狀態
     if (isLoading) {
-        return <div>載入中...</div>;
+        return <div>{t('loading')}</div>; // 使用翻譯的載入文字
     }
 
     return (
         <QueryClientProvider client={queryClient}>
             <Router>
-                <div className="app-container">
-                    {/* 頂部橘色橫條 */}
-                    <header className="top-bar">
-                        <div className="logo">逮救補</div>
-                        <input type="text" placeholder="搜尋" className="search-bar" />
-                            <div className="user-icon">
-                            {isLoggedIn ? (
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <Link to="/profile" className="user-link" style={{ display: 'flex', alignItems: 'center' }}>
-                                        {user?.avatar ? (
-                                            <img
-                                                src={`${process.env.REACT_APP_API_URL}${user.avatar}`}
-                                                alt="avatar"
-                                                style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '50%',
-                                                    objectFit: 'cover',
-                                                    marginRight: '8px'
-                                                }}
-                                            />
+                <Routes>
+                    {/* 獨立頁面：不需要側欄和頂部橫條 */}
+                    <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    {/* 其他路由：包含側欄和頂部橫條 */}
+                    <Route
+                        path="*"
+                        element={
+                            <div className="app-container">
+                                {/* 頂部橘色橫條 */}
+                                <header className="top-bar">
+                                    <div className="logo">{t('appTitle')}</div>
+                                    <div className="user-icon">
+                                        {isLoggedIn ? (
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <Link to="/profile" className="user-link" style={{ display: 'flex', alignItems: 'center' }}>
+                                                    {user?.avatar ? (
+                                                        <img
+                                                            src={`${process.env.REACT_APP_API_URL}${user.avatar}`}
+                                                            alt="avatar"
+                                                            style={{
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                borderRadius: '50%',
+                                                                objectFit: 'cover',
+                                                                marginRight: '8px'
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <span style={{ fontSize: '24px' }}>👤</span>
+                                                    )}
+                                                    {t('hiUser', { name: user?.name || t('user') })}
+                                                </Link>
+                                                <button onClick={handleLogout} style={{ marginLeft: '10px', cursor: 'pointer' }}>
+                                                    {t('logout')}
+                                                </button>
+                                                {/* 語言切換按鈕 */}
+                                                <div className="language-switcher">
+                                                    <button onClick={() => changeLanguage('en')} style={{ marginLeft: '10px' }}>
+                                                        EN
+                                                    </button>
+                                                    <button onClick={() => changeLanguage('zh')} style={{ marginLeft: '5px' }}>
+                                                        中文
+                                                    </button>
+                                                </div>
+                                            </div>
                                         ) : (
-                                            <span style={{ fontSize: '24px' }}>👤</span>
+                                            <Link to="/login" className="user-link">👤 {t('login')}</Link>
                                         )}
-                                        Hi, {user?.name || '使用者'}
-                                    </Link>
-                                    <button onClick={handleLogout} style={{ marginLeft: '10px', cursor: 'pointer' }}>
-                                        登出
-                                    </button>
+                                    </div>
+                                </header>
+
+                                {/* 左側選單 + 右側內容 */}
+                                <div className="main-content">
+                                    <nav className="side-menu">
+                                        {/* <Link to="/">登入</Link> */}
+                                        <Link to="/notebook">{t('yourNotes')}</Link>
+                                        <Link to="/camera">{t('camera')}</Link>
+                                        <Link to="/voice">{t('voice')}</Link>
+                                        <Link to="/tracker">{t('tracker')}</Link>
+                                        {/* <Link to="/knowledge">知識庫</Link> */}
+                                        <Link to="/rooms">{t('rooms')}</Link>
+                                        <Link to="/forum">{t('forum')}</Link>
+                                        <Link to="/sharing">{t('sharing')}</Link>
+                                        <Link to="/plan">{t('plan')}</Link>
+                                    </nav>
+
+                                    <div className="page-content">
+                                        <Routes>
+                                            {/* <Route path="/" element={<HomePage />} /> */}
+                                            <Route path="/" element={<Navigate to="/login" replace />} />
+                                            <Route
+                                                path="/profile"
+                                                element={isLoggedIn ? <UserProfilePage user={user} setUser={setUser} setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/notebook"
+                                                element={isLoggedIn ? <NotebookDashboard /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/camera"
+                                                element={isLoggedIn ? <CameraPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/gallery"
+                                                element={isLoggedIn ? <GalleryPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/voice"
+                                                element={isLoggedIn ? <VoicePage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/rooms"
+                                                element={isLoggedIn ? <RoomsPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/studyroom"
+                                                element={isLoggedIn ? <StudyRoom /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/tracker"
+                                                element={isLoggedIn ? <TrackerPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/plan"
+                                                element={isLoggedIn ? <PlanPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            {/* <Route path="/knowledge" element={<KnowledgePage />} /> */}
+                                            <Route
+                                                path="/forum"
+                                                element={isLoggedIn ? <ForumPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/forum/:id"
+                                                element={isLoggedIn ? <ThreadDetailPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/forum/new"
+                                                element={isLoggedIn ? <NewPostPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/sharing"
+                                                element={isLoggedIn ? <SharingPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/sharing/:id"
+                                                element={isLoggedIn ? <NoteDetail /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/note-detail"
+                                                element={isLoggedIn ? <NoteDetailPage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/transcribe"
+                                                element={isLoggedIn ? <TranscribePage /> : <Navigate to="/login" replace />}
+                                            />
+                                            <Route
+                                                path="/recording"
+                                                element={isLoggedIn ? <RecordingPage /> : <Navigate to="/login" replace />}
+                                            />
+                                        </Routes>
+                                    </div>
                                 </div>
-                            ) : (
-                                <Link to="/login" className="user-link">👤 登入</Link>
-                            )}
-                        </div>
-                    </header>
-
-                    {/* 左側選單 + 右側內容 */}
-                    <div className="main-content">
-                        <nav className="side-menu">
-                            {/* <Link to="/">登入</Link> */}
-                            <Link to="/notebook">你的筆記</Link>
-                            <Link to="/camera">相機</Link>
-                            <Link to="/voice">語音</Link>
-                            <Link to="/tracker">成效追蹤</Link>
-                            {/* <Link to="/knowledge">知識庫</Link> */}
-                            <Link to="/rooms">自習室</Link>
-                            <Link to="/forum">討論區</Link>
-                            <Link to="/sharing">筆記分享</Link>
-                            <Link to="/plan">讀書計畫</Link>
-                        </nav>
-
-                        <div className="page-content">
-                            <Routes>
-                                {/* <Route path="/" element={<HomePage />} /> */}
-                                <Route path="/" element={<Navigate to="/login" replace />} />
-                                <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} setUser={setUser} />} />
-                                <Route path="/profile" element={<UserProfilePage user={user} setUser={setUser} setIsLoggedIn={setIsLoggedIn} />} />
-                                <Route path="/register" element={<RegisterPage />} />
-                                <Route path="/notebook" element={<NotebookDashboard />} />
-                                <Route path="/camera" element={<CameraPage />} />
-                                <Route path="/gallery" element={<GalleryPage />} />
-                                <Route path="/voice" element={<VoicePage />} />
-                                <Route path="/rooms" element={<RoomsPage />} />
-                                <Route path="/studyroom" element={<StudyRoom />} />
-                                <Route path="/tracker" element={<TrackerPage />} />
-                                <Route path="/plan" element={<PlanPage />} />
-                                {/* <Route path="/knowledge" element={<KnowledgePage />} /> */}
-                                <Route path="/forum" element={<ForumPage />} />
-                                <Route path="/forum/:id" element={<ThreadDetailPage />} />
-                                <Route path="/forum/new" element={<NewPostPage />} />
-                                <Route path="/sharing" element={<SharingPage />} />
-                                <Route path="/sharing/:id"element={<NoteDetail />} />
-                                <Route path="/note-detail" element={<NoteDetailPage />} />
-                                <Route path="/transcribe" element={<TranscribePage />} />
-                                <Route path="/recording" element={<RecordingPage />} />
-                            </Routes>
-                        </div>
-                    </div>
-                </div>
+                            </div>
+                        }
+                    />
+                </Routes>
             </Router>
         </QueryClientProvider>
     );

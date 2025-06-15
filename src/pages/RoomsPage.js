@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import './RoomsPage.css';
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 function RoomsPage() {
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
+    const { t } = useTranslation('rooms'); // 指定 rooms 命名空間
 
     const [roomName, setRoomName] = useState('');
     const [maxMembers, setMaxMembers] = useState(1);
@@ -18,6 +20,7 @@ function RoomsPage() {
     const [currentRoom, setCurrentRoom] = useState(null);
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); // 新增：控制 modal 顯示
 
     // 移到外面隨時更新
     const fetchRooms = async () => {
@@ -38,19 +41,19 @@ function RoomsPage() {
             if (allResponse.data.success) {
                 setAllRooms(allResponse.data.rooms || []);
             } else {
-                setMessage('無法載入房間列表：' + (allResponse.data.error || '未知錯誤'));
+                setMessage(t('loadRoomListFailed', { error: allResponse.data.error || t('unknownError') }));
             }
 
             if (currentResponse.data.success) {
                 setCurrentRoom(currentResponse.data.room || null);
             } else {
-                setMessage('無法載入當前房間：' + (currentResponse.data.error || '未知錯誤'));
+                setMessage(t('loadCurrentRoomFailed', { error: currentResponse.data.error || t('unknownError') }));
             }
             console.log("頁面刷新");
             return allResponse.data.rooms || [];
         } catch (err) {
             console.error('Fetch rooms error:', err);
-            setMessage('無法載入房間：' + (err.response?.data?.error || err.message));
+            setMessage(t('loadRoomsFailed', { error: err.response?.data?.error || err.message }));
             return [];
         }
     };
@@ -79,12 +82,12 @@ function RoomsPage() {
 
     const handleCreateRoom = async () => {
         if (!roomName) {
-            setMessage('請輸入房間名稱');
+            setMessage(t('enterRoomName'));
             return;
         }
 
         if (maxMembers < 1 || maxMembers > 50) {
-            setMessage('人數限制必須在 1 到 50 之間');
+            setMessage(t('memberLimitInvalid'));
             return;
         }
 
@@ -96,7 +99,7 @@ function RoomsPage() {
             });
 
             if (!createdResponse.data.success) {
-                setMessage('無法檢查創建的房間：' + (createdResponse.data.error || '未知錯誤'));
+                setMessage(t('checkCreatedRoomFailed', { error: createdResponse.data.error || t('unknownError') }));
                 return;
             }
 
@@ -105,15 +108,15 @@ function RoomsPage() {
 
             if (currentRoom || createdRooms.length > 0) {
                 if (currentRoom && createdRooms.length > 0) {
-                    confirmMessage = `你目前在房間 "${currentRoom.name}" 且已創建房間 "${createdRooms[0].name}"。創建新房間將退出當前房間並覆蓋舊房間，是否繼續？`;
+                    confirmMessage = t('confirmCreateWithCurrentAndCreated', { current: currentRoom.name, created: createdRooms[0].name });
                 } else if (currentRoom) {
-                    confirmMessage = `你目前在房間 "${currentRoom.name}"。創建新房間將退出當前房間，是否繼續？`;
+                    confirmMessage = t('confirmCreateWithCurrent', { current: currentRoom.name });
                 } else {
-                    confirmMessage = `你已創建房間 "${createdRooms[0].name}"。創建新房間將退出舊房間，是否繼續？`;
+                    confirmMessage = t('confirmCreateWithCreated', { created: createdRooms[0].name });
                 }
 
                 if (!window.confirm(confirmMessage)) {
-                    setMessage('已取消創建房間');
+                    setMessage(t('createCanceled'));
                     return;
                 }
 
@@ -135,14 +138,14 @@ function RoomsPage() {
                 setMaxMembers(10);
                 setPassword('');
                 setDesc(''); // 清空描述
-                setMessage('房間創建成功');
+                setMessage(t('roomCreated'));
                 // 創建後導航到 /studyroom
                 navigate('/studyroom');                
             } else {
-                setMessage('創建房間失敗：' + (response.data.error || '未知錯誤'));
+                setMessage(t('createRoomFailed', { error: response.data.error || t('unknownError') }));
             }
         } catch (err) {
-            setMessage('創建房間失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('createRoomFailed', { error: err.response?.data?.error || err.message }));
         } finally {
             setLoading(false);
         }
@@ -151,7 +154,7 @@ function RoomsPage() {
     const handleJoinRoom = async (roomId, providedPassword = null) => {
         if (!roomId || isNaN(roomId) || roomId <= 0) {
             //console.log(joinRoomId);
-            setMessage('請選擇有效的房間');
+            setMessage(t('selectValidRoom'));
             return;
         }
 
@@ -162,9 +165,9 @@ function RoomsPage() {
         }
 
         if (currentRoom) {
-            const confirmMessage = `你目前在房間 "${currentRoom.name}"。加入新房間將退出當前房間，是否繼續？`;
+            const confirmMessage = t('confirmJoinWithCurrent', { current: currentRoom.name });
             if (!window.confirm(confirmMessage)) {
-                setMessage('已取消加入新房間');
+                setMessage(t('joinCanceled'));
                 return;
             }
             // 退出當前房間
@@ -192,16 +195,16 @@ function RoomsPage() {
                     setJoinRoomId('');
                     //setJoinPassword('');
                     setInviteCode('');
-                    setMessage('成功進入房間');
+                    setMessage(t('joinSuccess'));
                     navigate('/studyroom');
                 } else {
-                    setMessage('無法更新當前房間：' + (currentResponse.data.error || '未知錯誤'));
+                    setMessage(t('updateCurrentRoomFailed', { error: currentResponse.data.error || t('unknownError') }));
                 }
             } else {
-                setMessage('進入房間失敗：' + (response.data.error || '未知錯誤'));
+                setMessage(t('joinFailed', { error: response.data.error || t('unknownError') }));
             }
         } catch (err) {
-            setMessage('進入房間失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('joinFailed', { error: err.response?.data?.error || err.message }));
         } finally {
             setLoading(false);
         }
@@ -221,31 +224,31 @@ function RoomsPage() {
             const room = rooms.find(r => r.invite_code === code);
             
             if (room && room.has_password) {
-                password = window.prompt('請輸入房間密碼');
+                password = window.prompt(t('enterPasswordPrompt'));
                 if (password === null) {
-                    setMessage('已取消加入房間');
+                    setMessage(t('joinCanceled'));
                     window.history.replaceState({}, document.title, '/rooms');
                     return;
                 }
             }
 
             if (currentRoom && room && currentRoom.id === room.id) {
-                setMessage('重新進入房間');
+                setMessage(t('rejoinRoom'));
                 navigate('/studyroom');
                 window.history.replaceState({}, document.title, '/rooms');
                 return;
             }
 
             if (currentRoom) {
-                const confirmMessage = `你目前在房間 "${currentRoom.name}"。加入新房間將退出當前房間，是否繼續？`;
+                const confirmMessage = t('confirmJoinWithCurrent', { current: currentRoom.name });
                 if (!window.confirm(confirmMessage)) {
-                    setMessage('已取消加入新房間');
+                    setMessage(t('joinCanceled'));
                     return;
                 }
                 // 退出當前房間
                 const leaveResult = await handleLeaveRoom();
                 if (!leaveResult) {
-                    setMessage('退出當前房間失敗，請重試');
+                    setMessage(t('leaveFailed'));
                     return;
                 }                
             }
@@ -263,16 +266,16 @@ function RoomsPage() {
                     setCurrentRoom(currentResponse.data.room || null);
                     //setJoinPassword('');
                     setInviteCode('');
-                    setMessage('成功透過邀請連結進入房間');
+                    setMessage(t('joinByInviteSuccess'));
                     navigate('/studyroom');
                 } else {
-                    setMessage('無法更新當前房間：' + (currentResponse.data.error || '未知錯誤'));
+                    setMessage(t('updateCurrentRoomFailed', { error: currentResponse.data.error || t('unknownError') }));
                 }
             } else {
-                setMessage('透過邀請連結加入失敗：' + (response.data.error || '未知錯誤'));
+                setMessage(t('joinByInviteFailed', { error: response.data.error || t('unknownError') }));
             }
         } catch (err) {
-            setMessage('透過邀請連結加入失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('joinByInviteFailed', { error: err.response?.data?.error || err.message }));
         } finally {
             setLoading(false);
         }
@@ -280,25 +283,25 @@ function RoomsPage() {
 
     const handleJoin = async (roomId = null, hasPassword = false) => {
         if (!roomId && !joinRoomId && !inviteCode) {
-            setMessage('請輸入房間 ID 或邀請代碼');
+            setMessage(t('enterRoomIdOrCode'));
             return;
         }
     
         if (roomId && currentRoom && currentRoom.id === roomId) {
-            setMessage('重新進入房間');
+            setMessage(t('rejoinRoom'));
             navigate('/studyroom');
             return;
         }
     
         if (currentRoom) {
-            const confirmMessage = `你目前在房間 "${currentRoom.name}"。加入新房間將退出當前房間，是否繼續？`;
+            const confirmMessage = t('confirmJoinWithCurrent', { current: currentRoom.name });
             if (!window.confirm(confirmMessage)) {
-                setMessage('已取消加入新房間');
+                setMessage(t('joinCanceled'));
                 return;
             }
             const leaveResult = await handleLeaveRoom();
             if (!leaveResult) {
-                setMessage('退出當前房間失敗，請重試');
+                setMessage(t('leaveFailed'));
                 return;
             }
         }
@@ -309,9 +312,9 @@ function RoomsPage() {
             if (roomId) {
                 let password = undefined;
                 if (hasPassword) {
-                    password = window.prompt('請輸入房間密碼');
+                    password = window.prompt(t('enterPasswordPrompt'));
                     if (password === null) {
-                        setMessage('已取消加入房間');
+                        setMessage(t('joinCanceled'));
                         return;
                     }
                 }
@@ -322,7 +325,7 @@ function RoomsPage() {
                 await handleJoinRoom(joinRoomId);
             }
         } catch (err) {
-            setMessage('加入房間失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('joinFailed', { error: err.response?.data?.error || err.message }));
         } finally {
             setLoading(false);
         }
@@ -330,7 +333,7 @@ function RoomsPage() {
 
     const handleLeaveRoom = async () => {
         if (!currentRoom) {
-            setMessage('你不在任何房間');
+            setMessage(t('notInRoom'));
             return false;
         }
 
@@ -344,16 +347,16 @@ function RoomsPage() {
             );
             if (response.data.success) {
                 setCurrentRoom(null);
-                setMessage('成功退出房間');
+                setMessage(t('leaveSuccess'));
                 await fetchRooms();
                 return true;
             } else {
-                setMessage('退出房間失敗：' + (response.data.error || '未知錯誤'));
+                setMessage(t('leaveFailed', { error: response.data.error || t('unknownError') }));
                 return false;
             }
         } catch (err) {
             console.error('Leave room error:', err);
-            setMessage('退出房間失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('leaveFailed', { error: err.response?.data?.error || err.message }));
             return false;
         } finally {
             setLoading(false);
@@ -361,9 +364,9 @@ function RoomsPage() {
     };
 
     const handleDeleteRoom = async (roomId, roomName) => {
-        const confirmMessage = `確定要刪除房間 "${roomName}"？這將清空房內所有成員。`;
+        const confirmMessage = t('confirmDelete', { name: roomName });
         if (!window.confirm(confirmMessage)) {
-            setMessage('已取消刪除房間');
+            setMessage(t('deleteCanceled'));
             return;
         }
 
@@ -379,14 +382,14 @@ function RoomsPage() {
                 if (currentRoom && currentRoom.id === roomId) {
                     setCurrentRoom(null);
                 }
-                setMessage('房間刪除成功');
+                setMessage(t('deleteSuccess'));
                 // 重新獲取房間列表
                 await fetchRooms();                
             } else {
-                setMessage('刪除房間失敗：' + (response.data.error || '未知錯誤'));
+                setMessage(t('deleteFailed', { error: response.data.error || t('unknownError') }));
             }
         } catch (err) {
-            setMessage('刪除房間失敗：' + (err.response?.data?.error || err.message));
+            setMessage(t('deleteFailed', { error: err.response?.data?.error || err.message }));
         } finally {
             setLoading(false);
         }
@@ -396,188 +399,231 @@ function RoomsPage() {
         const inviteLink = `${window.location.origin}/rooms?code=${inviteCode}`;
         navigator.clipboard.writeText(inviteLink)
             .then(() => {
-                setMessage('邀請連結已複製到剪貼簿！');
+                setMessage(t('copySuccess'));
             })
             .catch(err => {
                 console.error('Copy invite link error:', err);
-                setMessage('複製邀請連結失敗：' + err.message);
+                setMessage(t('copyFailed', { error: err.message }));
             });
     };
 
     const getStatusName = (status) => {
         switch (status) {
-            case 0: return '離線';
-            case 1: return '線上';
-            case 2: return '私密';
-            default: return '未知';
+            case 0: return t('statusOffline');
+            case 1: return t('statusOnline');
+            case 2: return t('statusPrivate');
+            default: return t('statusUnknown');
         }
     };
 
     const userId = token ? JSON.parse(atob(token.split('.')[1])).userId : null;
 
+    const openModal = () => {
+        setIsModalOpen(true);
+        // 重置輸入欄位
+        setRoomName('');
+        setMaxMembers(1);
+        setPassword('');
+        setDesc('');
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
+
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>自習室</h2>
+        <div className="rooms-page">
+            <div style={{ padding: "2rem" }}>
+                <h2>{t('studyRooms')}</h2>
 
-            <div>
-                <h3>創建自習室</h3>
-                <input
-                    type="text"
-                    placeholder="輸入名稱"
-                    value={roomName}
-                    onChange={(e) => setRoomName(e.target.value)}
-                />
-                <input
-                    type="number"
-                    placeholder="人數限制 (1-50)"
-                    value={maxMembers}
-                    onChange={(e) => setMaxMembers(e.target.value)}
-                    min="1"
-                    max="50"
-                />
-                <input
-                    type="password"
-                    placeholder="輸入密碼（可選）"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-                <input
-                    type="text"
-                    placeholder="輸入房間描述（可選）"
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                />
-                <button onClick={handleCreateRoom} disabled={loading}>
-                    {loading ? '創建中...' : '創建自習室'}
-                </button>
-            </div>
+                <div>
+                    <h3>{t('createRoom')}</h3>
+                    <button className="create-room-btn" onClick={openModal} disabled={loading}>
+                        {loading ? t('creating') : t('createStudyRoom')}
+                    </button>
 
-            <div>
-                <h3>加入自習室</h3>
-                <input
-                    type="text"
-                    placeholder="輸入房間 ID"
-                    value={joinRoomId}
-                    onChange={(e) => setJoinRoomId(e.target.value)}
-                />
-                {/*<input
-                    type="password"
-                    placeholder="輸入密碼（若需要）"
-                    value={joinPassword}
-                    onChange={(e) => setJoinPassword(e.target.value)}
-                />*/}
-                <input
-                    type="text"
-                    placeholder="輸入邀請代碼（若有）"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
-                />
-                <button
-                    className="enter-btn"
-                    onClick={() => {
-                        if (inviteCode) {
-                            handleJoin(null, false); // 使用 inviteCode
-                        } else if (joinRoomId) {
-                            const room = allRooms.find(r => r.id === parseInt(joinRoomId));
-                            handleJoin(parseInt(joinRoomId), room ? room.has_password : false);
-                        } else {
-                            setMessage('請輸入房間 ID 或邀請代碼');
-                        }
-                    }}
-                    disabled={loading}
-                >
-                    {loading ? '加入中...' : '加入房間'}
-                </button>
-            </div>
-
-            <div>
-                <h3>自習室列表</h3>
-                <div style={{ display: "grid", gap: "1rem" }}>
-                    {allRooms.length > 0 ? (
-                        allRooms.map((room) => (
-                            <div
-                                key={room.id}
-                                className={`room-card ${currentRoom && currentRoom.id === room.id ? 'current-room' : ''}`}
-                            >
-                                <div className="room-info">
-                                    <div className={`status-dot status-${room.status}`}></div>
-                                    <span>
-                                        ID: {room.id} - {room.name} ({getStatusName(room.status)}, 人數: {room.current_members}/{room.max_members}
-                                        {room.has_password ? ' 有密碼' : ''})
-                                    </span>
-                                    {room.desc && (
-                                        <p className="room-desc" style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.5rem' }}>
-                                            {room.desc}
-                                        </p>
-                                    )}
+                    {isModalOpen && (
+                        <div className="modal-overlay">
+                            <div className="modal-content">
+                                <h3>{t('createNewRoom')}</h3>
+                                <div className="modal-input">
+                                    <label>{t('roomNameLabel')}</label>
+                                    <input
+                                        type="text"
+                                        placeholder={t('enterNamePlaceholder')}
+                                        value={roomName}
+                                        onChange={(e) => setRoomName(e.target.value)}
+                                    />
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                    <span style={{ fontSize: "0.9rem", color: "#555" }}>
-                                        房主: {room.creator_name}
-                                    </span>
-                                    <button
-                                        className="copy-btn"
-                                        onClick={() => copyInviteLink(room.invite_code)}
-                                    >
-                                        複製邀請連結
+                                <div className="modal-input">
+                                    <label>{t('memberLimitLabel')}</label>
+                                    <input
+                                        type="number"
+                                        placeholder={t('memberLimitPlaceholder')}
+                                        value={maxMembers}
+                                        onChange={(e) => setMaxMembers(e.target.value)}
+                                        min="1"
+                                        max="50"
+                                    />
+                                </div>
+                                <div className="modal-input">
+                                    <label>{t('passwordLabel')}</label>
+                                    <input
+                                        type="password"
+                                        placeholder={t('enterPasswordPlaceholder')}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                </div>
+                                <div className="modal-input">
+                                    <label>{t('descriptionLabel')}</label>
+                                    <input
+                                        type="text"
+                                        placeholder={t('enterDescriptionPlaceholder')}
+                                        value={desc}
+                                        onChange={(e) => setDesc(e.target.value)}
+                                    />
+                                </div>
+                                <div className="modal-buttons">
+                                    <button onClick={handleCreateRoom} disabled={loading}>
+                                        {loading ? t('creating') : t('confirm')}
                                     </button>
-                                    <button
-                                        className="enter-btn"
-                                        onClick={() => handleJoin(room.id, room.has_password)}
-                                        disabled={loading}
-                                    >
-                                        {currentRoom && currentRoom.id === room.id ? '重新進入' : '進入房間'}
+                                    <button onClick={closeModal} disabled={loading}>
+                                        {t('cancel')}
                                     </button>
-                                    {/* 暫時隱藏刪除房間按鈕
-                                    {userId && room.creator_id === userId && (
-                                        <button
-                                            className="delete-btn"
-                                            onClick={() => handleDeleteRoom(room.id, room.name)}
-                                            disabled={loading}
-                                        >
-                                            刪除房間
-                                        </button>
-                                    )}
-                                    */}
                                 </div>
                             </div>
-                        ))
-                    ) : (
-                        <p>尚無自習室</p>
+                        </div>
                     )}
                 </div>
-            </div>
 
-            {currentRoom && (
-                <div style={{ marginTop: "2rem" }}>
-                    <h3>你目前的房間</h3>
-                    <p>
-                        你目前在: <strong>{currentRoom.name}</strong> 
-                        (房主: {currentRoom.creator_name}, 狀態: {getStatusName(currentRoom.status)}, 
-                        人數: {currentRoom.current_members}/{currentRoom.max_members}, {currentRoom.has_password ? '有密碼' : '無密碼'})
-                        <button
-                            className="copy-btn"
-                            onClick={() => copyInviteLink(currentRoom.invite_code)}
-                            style={{ marginLeft: "1rem" }}
-                        >
-                            複製邀請連結
-                        </button>
-                    </p>
+                <div>
+                    <h3>{t('joinRoom')}</h3>
+                    <input
+                        type="text"
+                        placeholder={t('enterRoomIdPlaceholder')}
+                        value={joinRoomId}
+                        onChange={(e) => setJoinRoomId(e.target.value)}
+                    />
+                    {/*<input
+                        type="password"
+                        placeholder="輸入密碼（若需要）"
+                        value={joinPassword}
+                        onChange={(e) => setJoinPassword(e.target.value)}
+                    />*/}
+                    <input
+                        type="text"
+                        placeholder={t('enterInviteCodePlaceholder')}
+                        value={inviteCode}
+                        onChange={(e) => setInviteCode(e.target.value)}
+                    />
                     <button
-                        className="leave-btn"
-                        onClick={handleLeaveRoom}
+                        className="enter-btn"
+                        onClick={() => {
+                            if (inviteCode) {
+                                handleJoin(null, false); // 使用 inviteCode
+                            } else if (joinRoomId) {
+                                const room = allRooms.find(r => r.id === parseInt(joinRoomId));
+                                handleJoin(parseInt(joinRoomId), room ? room.has_password : false);
+                            } else {
+                                setMessage(t('enterRoomIdOrCode'));
+                            }
+                        }}
                         disabled={loading}
                     >
-                        {loading ? '退出中...' : '退出房間'}
+                        {loading ? t('joining') : t('joinRoomButton')}
                     </button>
                 </div>
-            )}
 
-            {message && (
-                <p className="message" style={{ color: message.includes('成功') || message.includes('取消') || message.includes('複製') ? 'green' : 'red' }}>
-                    {message}
-                </p>
-            )}
+                <div>
+                    <h3>{t('roomList')}</h3>
+                    <div style={{ display: "grid", gap: "1rem" }}>
+                        {allRooms.length > 0 ? (
+                            allRooms.map((room) => (
+                                <div
+                                    key={room.id}
+                                    className={`room-card ${currentRoom && currentRoom.id === room.id ? 'current-room' : ''}`}
+                                >
+                                    <div className="room-info">
+                                        <div className={`status-dot status-${room.status}`}></div>
+                                        <span>
+                                            {t('roomId')}: {room.id} - {room.name} ({getStatusName(room.status)}, {t('members')}: {room.current_members}/{room.max_members}
+                                            {room.has_password ? ` ${t('hasPassword')}` : ''})
+                                        </span>
+                                        {room.desc && (
+                                            <p className="room-desc" style={{ fontSize: '0.9rem', color: '#555', marginTop: '0.5rem' }}>
+                                                {room.desc}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                                        <span style={{ fontSize: "0.9rem", color: "#555" }}>
+                                            {t('creator')}: {room.creator_name}
+                                        </span>
+                                        <button
+                                            className="copy-btn"
+                                            onClick={() => copyInviteLink(room.invite_code)}
+                                        >
+                                            {t('copyInviteLink')}
+                                        </button>
+                                        <button
+                                            className="enter-btn"
+                                            onClick={() => handleJoin(room.id, room.has_password)}
+                                            disabled={loading}
+                                        >
+                                            {currentRoom && currentRoom.id === room.id ? t('rejoin') : t('joinRoomButton')}
+                                        </button>
+                                        {/* 暫時隱藏刪除房間按鈕
+                                        {userId && room.creator_id === userId && (
+                                            <button
+                                                className="delete-btn"
+                                                onClick={() => handleDeleteRoom(room.id, room.name)}
+                                                disabled={loading}
+                                            >
+                                                刪除房間
+                                            </button>
+                                        )}
+                                        */}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p>{t('noRooms')}</p>
+                        )}
+                    </div>
+                </div>
+
+                {currentRoom && (
+                    <div style={{ marginTop: "2rem" }}>
+                        <h3>{t('currentRoom')}</h3>
+                        <p>
+                            {t('youAreIn')}: <strong>{currentRoom.name}</strong> 
+                            ({t('creator')}: {currentRoom.creator_name}, {t('status')}: {getStatusName(currentRoom.status)}, 
+                            {t('members')}: {currentRoom.current_members}/{currentRoom.max_members}, {currentRoom.has_password ? t('hasPassword') : t('noPassword')})
+                            <button
+                                className="copy-btn"
+                                onClick={() => copyInviteLink(currentRoom.invite_code)}
+                                style={{ marginLeft: "1rem" }}
+                            >
+                                {t('copyInviteLink')}
+                            </button>
+                        </p>
+                        <button
+                            className="leave-btn"
+                            onClick={handleLeaveRoom}
+                            disabled={loading}
+                        >
+                            {loading ? t('leaving') : t('leaveRoom')}
+                        </button>
+                    </div>
+                )}
+
+                {message && (
+                    <p className="message" style={{ color: message.includes(t('roomCreated')) || message.includes(t('createCanceled')) || message.includes(t('copySuccess')) || message.includes(t('joinSuccess')) || message.includes(t('leaveSuccess')) || message.includes(t('deleteSuccess')) || message.includes(t('joinByInviteSuccess')) ? 'green' : 'red' }}>
+                        {message}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

@@ -12,7 +12,7 @@ export default function MermaidRenderer({ chart }) {
     // ✅ 不是以 Mermaid 語法開頭，就不嘗試渲染
     if (!trimmed.startsWith("graph") && !trimmed.startsWith("flowchart") && !trimmed.startsWith("sequenceDiagram")) {
       if (containerRef.current) {
-        containerRef.current.innerHTML = `<div class="text-gray-500 italic"></div>`;
+        containerRef.current.innerHTML = `<div class="text-gray-500 italic">⚠️ 無法識別的 Mermaid 圖表內容</div>`;
       }
       return;
     }

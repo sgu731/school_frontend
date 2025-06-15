@@ -12,3 +12,13 @@
   .recording-btn:hover {
     background-color: #dcdcdc;
   }
+
+  .text-gray-400 {
+  color: #9ca3af;
+}
+
+select {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

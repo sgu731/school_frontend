@@ -3,11 +3,13 @@ import Tesseract from "tesseract.js";
 import { Trash2, Brain } from "lucide-react";
 import axios from "axios";
 import "./GalleryPage.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 export default function GalleryPage() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const { t } = useTranslation('galleryPage'); // 指定 galleryPage 命名空間
 
   const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -18,8 +20,8 @@ export default function GalleryPage() {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/images`, authHeader);
         setImages(res.data.images || []);
       } catch (err) {
-        console.error("讀取圖片失敗", err);
-        alert("❌ 無法載入圖片庫");
+        console.error(t('fetchImagesFailed'), err);
+        alert(t('loadGalleryError'));
       }
     };
 
@@ -27,44 +29,44 @@ export default function GalleryPage() {
   }, []);
 
   const deleteImage = async (id) => {
-    if (!window.confirm("確定要刪除這張圖片？")) return;
+    if (!window.confirm(t('confirmDeleteImage'))) return;
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/images/${id}`, authHeader);
       setImages(images.filter((img) => img.id !== id));
     } catch (err) {
-      console.error("刪除失敗", err);
-      alert("❌ 刪除圖片失敗");
+      console.error(t('deleteFailed'), err);
+      alert(t('deleteImageError'));
     }
   };
 
   const handleOCR = async (imageBase64) => {
     setLoading(true);
     try {
-      const { data } = await Tesseract.recognize(imageBase64, "chi_tra+eng", {
+      const { data } = await Tesseract.recognize(imageBase64, "chi_tra+eng+jpn", {
         logger: (m) => console.log(m),
       });
       const text = data.text.trim();
       if (!text) {
-        alert("辨識不到任何文字！");
+        alert(t('noTextRecognized'));
         return;
       }
 
-      const confirmAdd = window.confirm("OCR 結果如下：\n\n" + text + "\n\n是否加入筆記？");
+      const confirmAdd = window.confirm(t('ocrResultConfirm', { text: text }));
       if (confirmAdd) {
         const now = new Date().toISOString();
         await axios.post(
           `${process.env.REACT_APP_API_URL}/api/note`,
           {
-            title: "從圖片轉文字",
+            title: t('noteTitleFromImage'),
             content: text,
           },
           authHeader
         );
-        alert("✅ 已成功加入筆記！");
+        alert(t('noteAddedSuccessfully'));
       }
     } catch (error) {
-      console.error("OCR失敗：", error);
-      alert("❌ OCR 辨識失敗，請稍後再試！");
+      console.error(t('ocrFailed'), error);
+      alert(t('ocrError'));
     } finally {
       setLoading(false);
     }
@@ -72,10 +74,10 @@ export default function GalleryPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">圖片庫</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('gallery')}</h1>
 
       {images.length === 0 ? (
-        <p className="text-gray-500">尚無圖片，請從相機頁新增！</p>
+        <p className="text-gray-500">{t('noImagesYet')}</p>
       ) : (
         <div className="flex overflow-x-auto gap-4 pb-2">
           {images.map((img) => (
@@ -129,7 +131,7 @@ export default function GalleryPage() {
               onClick={() => setPreviewImage(null)}
               className="gallery-btn absolute top-2 right-2"
             >
-              關閉
+              {t('close')}
             </button>
           </div>
         </div>
@@ -137,7 +139,7 @@ export default function GalleryPage() {
 
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <p className="text-white text-xl">辨識中...</p>
+          <p className="text-white text-xl">{t('recognizing')}</p>
         </div>
       )}
     </div>

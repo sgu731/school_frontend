@@ -4,10 +4,13 @@ import { Button } from "../components/ui/button";
 import { Search, Pencil, Trash2, Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import "./NotebookDashboard.css";
+import { useTranslation } from "react-i18next"; // 導入 useTranslation
 
 export default function NotebookDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation('notebook'); // 指定 notebook 命名空間
 
   const [notes, setNotes] = useState([]);
   const [editingNoteId, setEditingNoteId] = useState(null);
@@ -54,7 +57,7 @@ export default function NotebookDashboard() {
     
     const now = formatForMySQL(new Date());
     const newNote = {
-      title: `新筆記 ${notes.length + 1}`,
+      title: t('newNoteTitle', { count: notes.length + 1 }), // 使用翻譯
       content: "",
       date: now,
       updatedAt: now,
@@ -100,7 +103,7 @@ export default function NotebookDashboard() {
   };
 
   const deleteNote = async (id) => {
-    if (!window.confirm("確定要刪除這筆筆記嗎？")) return;
+    if (!window.confirm(t('confirmDelete'))) return; // 使用翻譯
   
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/note/${id}`, authHeader);
@@ -128,49 +131,27 @@ export default function NotebookDashboard() {
   }
 
   return (
-    <div className="p-6">
+    <div className="notebook-dashboard">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">你的筆記</h2>
-        <div className="relative">
-          <Search className="absolute left-2 top-2 text-gray-400" size={16} />
+      <div className="header">
+        <h2>{t('yourNotes')}</h2>
+        <div className="search-container">
+          <Search className="search-icon" size={16} />
           <Input
-            placeholder="搜尋"
-            className="pl-8 w-64 border rounded-md"
+            placeholder={t('searchNotes')}
+            className="search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Notes Flex Container */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "16px",
-        }}
-      >
+      {/* Notes Container */}
+      <div className="notes-container">
         {/* Add Note Button */}
-        <div
-          onClick={addNote}
-          style={{
-            width: "150px",
-            height: "150px",
-            border: "2px solid #d1d5db",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-            borderRadius: "12px",
-            cursor: "pointer",
-            transition: "background-color 0.2s",
-            padding: "12px",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-        >
-          <Plus size={48} color="#9ca3af" />
+        <div className="add-note" onClick={addNote}>
+          <Plus size={48} />
+          <span>{t('addNote')}</span>
         </div>
 
         {/* Notes */}
@@ -182,6 +163,7 @@ export default function NotebookDashboard() {
           .map((note) => (
             <div
               key={note.id}
+              className="note-card"
               onClick={() => {
                 if (editingNoteId === note.id) return;
                 navigate("/note-detail", {
@@ -193,132 +175,62 @@ export default function NotebookDashboard() {
                   },
                 });
               }}
-              style={{
-                width: "150px",
-                height: "150px",
-                border: "2px solid #d1d5db",
-                borderRadius: "12px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                padding: "12px",
-                position: "relative",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f3f4f6")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
               {editingNoteId === note.id ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className="edit-form">
                   <input
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      padding: "4px",
-                      border: "1px solid #ccc",
-                      borderRadius: "6px",
-                    }}
+                    className="edit-title"
+                    placeholder={t('noteTitlePlaceholder')}
                   />
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    style={{
-                      fontSize: "12px",
-                      padding: "4px",
-                      border: "1px solid #ccc",
-                      borderRadius: "6px",
-                      resize: "none",
-                    }}
-                    rows={2}
+                    className="edit-content"
+                    placeholder={t('noteContentPlaceholder')}
+                    rows={3}
                   />
-                  <div style={{ display: "flex", gap: "4px", justifyContent: "flex-end" }}>
-                    <button
-                      onClick={saveEditing}
-                      style={{
-                        fontSize: "12px",
-                        backgroundColor: "#3b82f6",
-                        color: "#fff",
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        border: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      儲存
-                    </button>
-                    <button
-                      onClick={cancelEditing}
-                      style={{
-                        fontSize: "12px",
-                        backgroundColor: "#fff",
-                        color: "#374151",
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        border: "1px solid #d1d5db",
-                        cursor: "pointer",
-                      }}
-                    >
-                      取消
-                    </button>
+                  <div className="edit-actions">
+                    <button onClick={saveEditing} className="save-btn">{t('save')}</button>
+                    <button onClick={cancelEditing} className="cancel-btn">{t('cancel')}</button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div
-                    style={{
-                      flex: 1,
-                      overflow: "auto",
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <div style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}>
-                      {note.title || "（未命名筆記）"}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#6b7280", wordBreak: "break-word" }}>
+                  <div className="note-content">
+                    <div className="note-title">{note.title || t('untitledNote')}</div>
+                    <div className="note-preview">
                       {(() => {
                         try {
                           const parsed = typeof note.content === "string" ? JSON.parse(note.content) : note.content;
                           return extractPlainTextFromTipTapJSON(parsed.editor);
                         } catch {
-                          return note.content; // fallback：顯示原始字串
+                          return note.content;
                         }
                       })()}
                     </div>
                   </div>
-                  <div style={{ fontSize: "10px", color: "#9ca3af", marginTop: "4px" }}>
-                    {formatDate(note.updatedAt)}
-                  </div>
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "8px",
-                      display: "flex",
-                      gap: "4px",
-                    }}
-                  >
-                    <Pencil
-                      size={16}
-                      color="#3b82f6"
-                      style={{ cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditing(note);
-                      }}
-                    />
-                    <Trash2
-                      size={16}
-                      color="#ef4444"
-                      style={{ cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteNote(note.id);
-                      }}
-                    />
+                  <div className="note-footer">
+                    <div className="note-date">{formatDate(note.updatedAt)}</div>
+                    <div className="note-actions">
+                      <Pencil
+                        size={16}
+                        className="edit-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditing(note);
+                        }}
+                      />
+                      <Trash2
+                        size={16}
+                        className="delete-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNote(note.id);
+                        }}
+                      />
+                    </div>
                   </div>
                 </>
               )}

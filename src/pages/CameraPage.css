@@ -9,6 +9,116 @@
     transition: background-color 0.2s ease;
   }
   
-  .camera-btn:hover {
-    background-color: #dcdcdc;
-  }
+.camera-btn:hover {
+  background-color: #dcdcdc;
+}
+
+/* CameraUploadModal.css */
+.upload-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* 確保高於其他元素 */
+}
+
+.upload-modal-content {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 28rem; /* 限制最大寬度 */
+  position: relative;
+}
+
+.upload-modal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.upload-modal-dropzone {
+  border: 2px dashed #d1d5db;
+  padding: 1.5rem;
+  text-align: center;
+  border-radius: 0.375rem;
+  background-color: #f9fafb;
+  transition: border-color 0.3s ease;
+}
+
+.upload-modal-dropzone:hover {
+  border-color: #9ca3af;
+}
+
+.upload-modal-dropzone p {
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.upload-modal-dropzone label {
+  color: #3b82f6;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.upload-modal-dropzone label:hover {
+  color: #2563eb;
+}
+
+.upload-modal-dropzone input {
+  display: none;
+}
+
+.upload-modal-dropzone .hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.upload-modal-files {
+  margin-top: 1rem;
+  color: #4b5563;
+}
+
+.upload-modal-files button {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-modal-files button:hover {
+  background-color: #2563eb;
+}
+
+.upload-modal-close {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #6b7280;
+  color: white;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s ease;
+}
+
+.upload-modal-close:hover {
+  background-color: #4b5563;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

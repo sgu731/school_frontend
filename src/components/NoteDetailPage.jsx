@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye } from "lucide-react"; // 添加 Eye 圖標用於展開
 import MermaidRenderer from "./common/MermaidRenderer";
 import axios from "axios";
 import NoteEditor from "./NoteEditor";
 import "./NoteDetailPage.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 export default function NoteDetailPage() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { title: initialTitle, content: initialContent } = state || {};
+  const { t, i18n } = useTranslation('noteDetailPage'); // 指定 noteDetailPage 命名空間
 
   const isValidTipTapJson = (data) => {
     return data?.editor?.type === "doc" && Array.isArray(data?.editor?.content);
@@ -37,7 +39,11 @@ export default function NoteDetailPage() {
   const [toolbarPosition, setToolbarPosition] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [selectedAnalysis, setSelectedAnalysis] = useState(null); // 控制展開的分析內容
   const titleRef = useRef();
+  const [isTranslateMenuOpen, setIsTranslateMenuOpen] = useState(false);
+  const toolbarRef = useRef();
+  const editorContainerRef = useRef();
 
   useEffect(() => {
     const handleMouseUp = (e) => {
@@ -58,23 +64,41 @@ export default function NoteDetailPage() {
         if (centerX < safePadding) centerX = safePadding;
         else if (centerX > viewportWidth - safePadding) centerX = viewportWidth - safePadding;
         setSelectedText(selected);
-        setToolbarPosition({ top: rect.top + window.scrollY - 50, left: centerX });
+        setToolbarPosition({ top: rect.top + window.scrollY - 60, left: centerX });
       } else {
         setSelectedText("");
         setToolbarPosition(null);
+        setIsTranslateMenuOpen(false);
+      }
+    };
+
+    const handleClickOutside = (e) => {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target)) {
+        setIsTranslateMenuOpen(false);
       }
     };
 
     document.addEventListener("mouseup", handleMouseUp);
-    return () => document.removeEventListener("mouseup", handleMouseUp);
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, []);
 
   const handleMode = async (mode) => {
     if (!selectedText) return;
+    const isEnglish = i18n.language === 'en';
     const promptMap = {
-      "考試模式": `請將以下內容整理成條列式重點，並提供每點的簡要補充說明：\n\n${selectedText}`,
-      "報告模式": `請將以下內容轉換成一份報告圖表：\n\n${selectedText}`,
-      "摘要": `請將以下內容濃縮成簡潔摘要：\n\n${selectedText}`,
+      [t('examMode')]: isEnglish
+        ? `Please organize the following content into a bullet-point list, provide a brief explanation for each point, and optionally include possible multiple-choice or true/false questions:\n\n${selectedText}`
+        : `請將以下內容整理成條列式重點，並提供每點的簡要補充說明，你也可以補充可能會出現的選擇題以及是非題等等，如果內容是英文，請出英文題目：\n\n${selectedText}`,
+      [t('reportMode')]: isEnglish
+        ? `Please convert the following content into a report chart using Mermaid syntax, and append the Mermaid website link for the user to paste the syntax:\n\n${selectedText}`
+        : `請將以下內容轉換成一份報告圖表，你可以使用 mermaid 語法，並在最後補上 mermaid 網站給使用者貼上語法：\n\n${selectedText}`,
+      [t('summary')]: isEnglish
+        ? `Please condense the following content into a concise summary:\n\n${selectedText}`
+        : `請將以下內容濃縮成簡潔摘要：\n\n${selectedText}`,
     };
 
     const token = localStorage.getItem("token");
@@ -83,16 +107,43 @@ export default function NoteDetailPage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/ai/analyze",
+        `${process.env.REACT_APP_API_URL}/api/ai/analyze`,
         { text: selectedText, prompt: promptMap[mode] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const analysis = response.data.analysis || "⚠️ 無回應內容";
+      const analysis = response.data.analysis || t('noResponseContent');
       setAnalysisResults((prev) => [...prev, { mode, content: analysis }]);
     } catch (err) {
-      const errorMessage = `分析失敗：${err.response?.data?.error || err.message}`;
+      const errorMessage = t('analysisFailed', { error: err.response?.data?.error || err.message });
       setError(errorMessage);
       setAnalysisResults((prev) => [...prev, { mode, content: `⚠️ ${errorMessage}` }]);
+      setTimeout(() => setError(""), 2000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTranslate = async (language) => {
+    if (!selectedText) return;
+    const prompt = t('translatePrompt', { language: language, text: selectedText });
+
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    setError("");
+    setIsTranslateMenuOpen(false);
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/ai/analyze`,
+        { text: selectedText, prompt },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const translation = response.data.analysis || t('noResponseContent');
+      setAnalysisResults((prev) => [...prev, { mode: t('translationMode', { language: language }), content: translation }]);
+    } catch (err) {
+      const errorMessage = t('translationFailed', { error: err.response?.data?.error || err.message });
+      setError(errorMessage);
+      setAnalysisResults((prev) => [...prev, { mode: t('translationMode', { language: language }), content: `⚠️ ${errorMessage}` }]);
       setTimeout(() => setError(""), 2000);
     } finally {
       setLoading(false);
@@ -111,103 +162,206 @@ export default function NoteDetailPage() {
         { title, content: fullContent, updatedAt: now },
         authHeader
       );
-      alert("✅ 筆記已儲存（包含分析結果）！");
-      setAnalysisResults([]);
+      alert(t('noteSaved'));
     } catch (err) {
-      console.error("筆記儲存失敗", err);
-      alert("❌ 儲存筆記失敗！");
+      console.error(t('noteSaveFailed'), err);
+      alert(t('noteSaveError'));
     }
   };
 
   const deleteNote = async () => {
-    if (!window.confirm("❗確定要刪除這篇筆記嗎？")) return;
+    if (!window.confirm(t('confirmDelete'))) return;
     const token = localStorage.getItem("token");
     const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/note/${state.id}`, authHeader);
-      alert("✅ 筆記已刪除！");
+      alert(t('noteDeleted'));
       navigate("/notebook", { state: { reload: true } });
     } catch (err) {
-      console.error("筆記刪除失敗", err);
-      alert("❌ 刪除筆記失敗！");
+      console.error(t('noteDeleteFailed'), err);
+      alert(t('noteDeleteError'));
     }
   };
 
+  const shareNote = async () => {
+    const token = localStorage.getItem("token");
+    const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+    const author = JSON.parse(atob(token.split('.')[1])).name || "Anonymous"; // 無實際效果
+    const content = JSON.stringify({ editor: editorContent, analysis: analysisResults });
+
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/notes`,
+        { title, author, content },
+        authHeader
+      );
+      alert(t('noteSharedSuccessfully'));
+    } catch (err) {
+      console.error(t('noteShareFailed'), err);
+      alert(t('noteShareError'));
+    }
+  };  
+
+  const handleViewAnalysis = (item) => {
+    setSelectedAnalysis(item);
+  };
+
+  const closeAnalysisModal = () => {
+    setSelectedAnalysis(null);
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="bg-orange-400 p-4 flex items-center justify-between gap-4 relative">
-        <button className="note-btn flex items-center gap-1" onClick={() => navigate("/notebook")}>
+    <div className="note-detail-page flex flex-col min-h-screen app-container">
+      <div className="note-header">
+        <button
+          className="note-btn note-btn--back flex items-center gap-1"
+          onClick={() => navigate("/notebook")}
+        >
           <ArrowLeft size={18} />
         </button>
-
-        {/* ✅ 中央區塊：標題 + 按鈕並排 */}
-        <div className="flex-1 flex justify-center">
-          <div className="flex items-center gap-4 w-full max-w-[700px]">
-            <input
-              ref={titleRef}
-              className="flex-1 text-lg font-bold text-center bg-transparent outline-none"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <button className="note-btn" onClick={deleteNote}>
-              刪除筆記
-            </button>
-            <button className="note-btn" onClick={saveChanges}>
-              儲存變更
-            </button>
-          </div>
-        </div>
+        <input
+          ref={titleRef}
+          className="note-title-input"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <button className="note-btn note-btn--danger" onClick={deleteNote}>
+          {t('deleteNote')}
+        </button>
+        <button className="note-btn note-btn--success" onClick={saveChanges}>
+          {t('saveChanges')}
+        </button>
+        <button className="note-btn note-btn--primary" onClick={shareNote}>
+          {t('shareNote')}
+        </button>        
       </div>
 
-      <div className="flex-1 overflow-auto p-6 bg-gray-50 relative">
-        <NoteEditor value={editorContent} onChange={setEditorContent} />
+      <div className="note-content">
+        <div className="note-layout">
+          <div className="note-editor-container" ref={editorContainerRef}>
+            <NoteEditor value={editorContent} onChange={setEditorContent} />
+          </div>
+          <div className="note-analysis-sidebar">
+            {analysisResults.length > 0 && (
+              <div className="note-analysis-timeline">
+                {analysisResults.map((item, index) => (
+                  <div key={index} className="note-analysis-card" onClick={() => handleViewAnalysis(item)}>
+                    <h3 className="note-analysis-card__title">{item.mode}</h3>
+                    <p className="note-analysis-card__preview">
+                      {item.content.length > 100 ? item.content.slice(0, 100) + "..." : item.content}
+                    </p>
+                    <button className="note-analysis-view-btn">
+                      <Eye size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {selectedText && toolbarPosition && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="absolute z-50"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="note-toolbar-wrapper"
+            ref={toolbarRef}
             style={{
               top: toolbarPosition.top,
               left: toolbarPosition.left,
-              transform: "translateX(-50%) translateY(-8px)",
+              transform: "translateX(-50%)",
             }}
           >
-            <div className="w-full flex justify-center">
-              <div className="w-3 h-3 rotate-45 bg-white border-l border-t border-gray-300 -mb-1" />
-            </div>
-            <div className="flex rounded-md shadow-md border bg-white text-sm font-medium overflow-hidden">
-              {["考試模式", "報告模式", "摘要"].map((mode, index) => (
+            <div className="note-toolbar">
+              {[t('examMode'), t('reportMode'), t('summary')].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => handleMode(mode)}
-                  className={`note-btn ${index < 2 ? "border-r border-gray-300" : ""}`}
+                  className="note-toolbar__button"
                 >
                   {mode}
                 </button>
               ))}
+              <div className="relative">
+                <button
+                  className="note-toolbar__button"
+                  onClick={() => setIsTranslateMenuOpen((prev) => !prev)}
+                >
+                  {t('translate')}
+                </button>
+                {isTranslateMenuOpen && (
+                  <div className="note-translate-menu">
+                    {[
+                      t('english'),
+                      t('traditionalChinese'),
+                      t('simplifiedChinese'),
+                      t('japanese'),
+                      t('korean'),
+                      t('french')
+                    ].map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => handleTranslate(lang)}
+                        className="note-translate-menu__item"
+                      >
+                        {lang}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
 
-        {analysisResults.length > 0 && (
-          <div className="mt-6 space-y-4">
-            {analysisResults.map((item, index) => (
-              <div key={index} className="bg-white border border-gray-200 rounded-md p-4">
-                <h3 className="font-semibold mb-2 text-orange-600">{item.mode}</h3>
-                {item.mode === "報告模式" ? (
-                  <>
-                    <MermaidRenderer chart={item.content} />
-                    <pre className="whitespace-pre-wrap text-sm text-green-700 font-mono bg-gray-100 p-3 rounded mt-4">
-                      {item.content}
-                    </pre>
-                  </>
-                ) : (
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800">{item.content}</pre>
-                )}
-              </div>
-            ))}
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="note-loading"
+          >
+            <svg
+              className="note-loading__spinner"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          </motion.div>
+        )}
+
+        {selectedAnalysis && (
+          <div className="note-analysis-modal" onClick={closeAnalysisModal}>
+            <div className="note-analysis-modal-content" onClick={(e) => e.stopPropagation()}>
+              <h3 className="note-analysis-modal-title">{selectedAnalysis.mode}</h3>
+              {selectedAnalysis.mode === t('reportMode') ? (
+                <>
+                  {/* <MermaidRenderer chart={selectedAnalysis.content} /> */}
+                  <pre className="note-analysis-card__code">
+                    {selectedAnalysis.content}
+                  </pre>
+                </>
+              ) : (
+                <pre className="note-analysis-card__content">{selectedAnalysis.content}</pre>
+              )}
+              <button className="note-analysis-close-btn" onClick={closeAnalysisModal}>
+                {t('close')}
+              </button>
+            </div>
           </div>
         )}
       </div>

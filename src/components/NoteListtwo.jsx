@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import NoteCard from "./NoteCard";
 import "./NoteListtwo.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 function NoteListtwo() {
     const [notes, setNotes] = useState([]);
     const [search, setSearch] = useState("");
     const token = localStorage.getItem("token");
+    const { t } = useTranslation('noteList'); // 指定 noteList 命名空間
 
     //抓
     useEffect(() => {
@@ -16,7 +18,7 @@ function NoteListtwo() {
         })
             .then((res) => res.json())
             .then((data) => setNotes(data))
-            .catch((err) => console.error("載入筆記失敗：", err));
+            .catch((err) => console.error(t('loadNotesFailed') + ":", err));
     }, [token]);
 
     // 切換收藏狀態
@@ -37,7 +39,7 @@ function NoteListtwo() {
                     );
                 }
             })
-            .catch((err) => console.error("切換收藏失敗：", err));
+            .catch((err) => console.error(t('toggleBookmarkFailed') + ":", err));
     };
 
     const filteredNotes = notes.filter((note) =>
@@ -49,7 +51,7 @@ function NoteListtwo() {
             <input
                 type="text"
                 className="search-input"
-                placeholder="搜尋筆記"
+                placeholder={t('searchNotes')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
             />

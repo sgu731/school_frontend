@@ -1,0 +1,215 @@
+/* 登入頁面專屬樣式 */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(145deg, #e0e7ff 0%, #c7d2fe 100%);
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.logo-login {
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;    
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.logo-img {
+    max-width: 150px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.login-page h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: slideDown 0.5s ease-in-out;
+}
+
+.login-page .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: #6b7280;
+    transition: color 0.2s;
+}
+
+.login-page .form-group input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #1a202c;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+    box-sizing: border-box;
+}
+
+.login-page .form-group input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+.login-page .form-group input:focus + .input-icon {
+    color: var(--primary-orange);
+}
+
+.login-page .login-label label {
+    display: flex;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #1a202c;
+    margin-bottom: 1rem;
+    float: right;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: var(--primary-orange);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s, background-color 0.2s;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.5s ease-in-out 0.2s backwards;
+}
+
+.login-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(245, 124, 0, 0.4);
+    background: var(--primary-orange-hover);
+}
+
+.message {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: #dc3545;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.link-group {
+    text-align: center;
+    margin-top: 1.5rem;
+    animation: fadeIn 0.5s ease-in-out 0.3s backwards;
+}
+
+.link-group p {
+    margin: 0.5rem 0;
+}
+
+.link {
+    color: var(--primary-orange);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.link:hover {
+    color: var(--primary-orange-hover);
+    text-decoration: underline;
+}
+
+/* 動畫 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1.5rem;
+        max-width: 360px;
+    }
+
+    .login-page h1 {
+        font-size: 1.75rem;
+    }
+
+    .login-page .form-group input {
+        padding: 0.6rem 0.9rem 0.6rem 3rem;
+    }
+
+    .login-btn {
+        padding: 0.6rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page {
+        padding: 0.5rem;
+    }
+
+    .login-container {
+        padding: 1rem;
+        max-width: 300px;
+    }
+
+    .login-page h1 {
+        font-size: 1.5rem;
+    }
+
+    .login-page .form-group input {
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    }
+
+    .input-icon {
+        left: 0.75rem;
+        size: 18px;
+    }
+
+    .login-btn {
+        padding: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .message {
+        font-size: 0.9rem;
+    }
+
+    .link-group p {
+        margin: 0.3rem 0;
+    }
+}

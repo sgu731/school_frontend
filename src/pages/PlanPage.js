@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './PlanPage.css';
 import PlanModal from '../components/PlanModal';
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 const PlanPage = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -13,6 +14,9 @@ const PlanPage = () => {
   const [modalData, setModalData]       = useState(null);
   const [startHour, setStartHour]       = useState(0);
   const [endHour,   setEndHour]         = useState(23);
+  const { i18n } = useTranslation(); // 獲取 i18n 實例以取得當前語言
+  const locale = i18n.language === 'en' ? 'en-US' : 'zh-TW';
+  const { t } = useTranslation('plan'); // 指定 plan 命名空間
 
   const generateColor = idx => `hsl(${(idx * 47) % 360},50%,65%)`;
   const subjectColorMap = useMemo(() => {
@@ -39,7 +43,10 @@ const PlanPage = () => {
 
   const fetchPlans = useCallback(async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      console.error('無效的 token');
+      return;
+    }
     const start = new Date(weekDates[0]); start.setDate(start.getDate() - 7);
     const end   = new Date(weekDates[6]); end.setDate(end.getDate() + 7);
     const qs = `start=${start.toISOString().slice(0,10)}&end=${end.toISOString().slice(0,10)}`;
@@ -47,6 +54,7 @@ const PlanPage = () => {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/api/schedule?${qs}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`HTTP 錯誤: ${res.status}`);
       const data = await res.json();
       setPlans(data.schedule || []);
     } catch (err) {
@@ -56,11 +64,15 @@ const PlanPage = () => {
 
   const fetchSubjects = useCallback(async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      console.error('無效的 token');
+      return;
+    }
     try {
-      const res  = await fetch(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/study/subjects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (!res.ok) throw new Error(`HTTP 錯誤: ${res.status}`);
       const data = await res.json();
       setSubjects(data.subjects || []);
     } catch (err) {
@@ -87,7 +99,7 @@ const PlanPage = () => {
 
   const isOverlap = (ns, ne) =>
     plans.some(p => {
-      if (modalMode==='edit' && p.id===modalData.id) return false;
+      if (modalMode==='edit' && p.id===modalData?.id) return false;
       const ps = new Date(p.start_time).getTime();
       const pe = new Date(p.end_time).getTime();
       return ns < pe && ne > ps;
@@ -112,57 +124,82 @@ const PlanPage = () => {
   const handleAddPlan     = () => { setModalMode('add'); setModalData(null); setModalOpen(true); };
   const handleDeletePlan  = async id => {
     const token = localStorage.getItem('token');
-    await fetch(`${process.env.REACT_APP_API_URL}/api/schedule/${id}`, {
-      method:'DELETE', headers:{ Authorization:`Bearer ${token}` }
-    });
-    await fetchPlans();
-    setModalOpen(false);
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/schedule/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(`HTTP 錯誤: ${res.status}`);
+      await fetchPlans();
+      setModalOpen(false);
+    } catch (err) {
+      console.error('刪除計畫失敗', err);
+      alert(t('deletePlanFailed')); // 使用翻譯
+    }
   };
+
   const handleModalSubmit = async form => {
-    if (!form.subjectId)                  return alert('請選擇科目！');
-    if (!form.startTime || !form.endTime) return alert('請選擇開始與結束時間！');
+    if (!form.subjectId) return alert(t('selectSubject')); // 使用翻譯
+    if (!form.startTime || !form.endTime) return alert(t('selectTime')); // 使用翻譯
 
     const ns = new Date(form.startTime).getTime();
     const ne = new Date(form.endTime).getTime();
-    if (ne <= ns)                         return alert('結束時間需晚於開始時間！');
-    if (isOverlap(ns, ne))               return alert('與現有計畫時間重疊！');
+    if (ne <= ns) return alert(t('endTimeAfterStart')); // 使用翻譯
+    if (isOverlap(ns, ne)) return alert(t('timeOverlap')); // 使用翻譯
 
     const token = localStorage.getItem('token');
-    const url   = modalMode==='add'
+    if (!token) {
+      console.error('無效的 token');
+      return alert(t('relogin')); // 使用翻譯
+    }
+
+    const url = modalMode === 'add'
       ? `${process.env.REACT_APP_API_URL}/api/schedule`
-      : `${process.env.REACT_APP_API_URL}/api/schedule/${modalData.id}`;
-    const method = modalMode==='add' ? 'POST' : 'PUT';
-    await fetch(url, {
-      method,
-      headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
-      body: JSON.stringify({
-        subjectId: form.subjectId,
-        startTime: form.startTime,
-        endTime:   form.endTime,
-        note:      form.note
-      })
-    });
-    await fetchPlans();
-    setModalOpen(false);
+      : `${process.env.REACT_APP_API_URL}/api/schedule/${modalData?.id}`;
+    const method = modalMode === 'add' ? 'POST' : 'PUT';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subjectId: form.subjectId,
+          startTime: form.startTime,
+          endTime: form.endTime,
+          note: form.note || ''
+        })
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(`HTTP 錯誤: ${res.status}, 訊息: ${errorData.message || '未知錯誤'}`);
+      }
+      await fetchPlans();
+      setModalOpen(false);
+    } catch (err) {
+      console.error(`${modalMode === 'add' ? '新增' : '編輯'}計畫失敗`, err);
+      alert(t(modalMode === 'add' ? 'addPlanFailed' : 'editPlanFailed', { message: err.message })); // 使用翻譯
+    }
   };
 
   return (
-    <div style={{ padding:'2rem', maxWidth:'1200px', margin:'0 auto' }}>
-
+    <div className="plan-page">
       <div className="week-nav-container">
-        <button className="week-nav-btn" onClick={handlePrevWeek}>‹ 上週</button>
+        <button className="week-nav-btn" onClick={handlePrevWeek}>{t('prevWeek')}</button>
         <DatePicker
           className="week-nav-date-picker"
           selected={selectedDate}
           onChange={setSelectedDate}
           dateFormat="yyyy/MM/dd"
         />
-        <button className="week-nav-btn" onClick={handleNextWeek}>下週 ›</button>
-        <button className="week-nav-btn primary" onClick={handleAddPlan}>新增計畫</button>
+        <button className="week-nav-btn" onClick={handleNextWeek}>{t('nextWeek')}</button>
+        <button className="week-nav-btn primary" onClick={handleAddPlan}>{t('addPlan')}</button>
       </div>
 
       <div className="week-nav-time-row">
-        <label className="week-nav-label">開始時間：</label>
+        <label className="week-nav-label">{t('startTimeLabel')}</label>
         <select
           className="week-nav-select"
           value={startHour}
@@ -176,48 +213,20 @@ const PlanPage = () => {
         </select>
       </div>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '80px repeat(7,150px)',
-        border: '1px solid #ccc',
-        overflowX: 'auto',
-        width: 'fit-content',
-        margin: '0 auto'
-      }}>
-        <div />
+      <div className="schedule-grid">
+        <div className="grid-header empty-cell"></div>
         {weekDates.map((d, i) => (
-          <div key={i} style={{
-            textAlign: 'center',
-            padding: '0.5rem',
-            background: '#f2f2f2',
-            position: 'relative',
-            zIndex: 10
-          }}>
-            {d.toLocaleDateString('zh-TW', { month:'numeric', day:'numeric', weekday:'short' })}
+          <div key={i} className="grid-header">
+            {d.toLocaleDateString(locale, { month:'numeric', day:'numeric', weekday:'short' })}
           </div>
         ))}
         {timeSlots.map(time => (
           <React.Fragment key={time}>
-            <div style={{
-              height: 30,
-              fontSize: '0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRight: '1px solid #ccc',
-              color: time.endsWith(':00') ? '#000' : 'transparent'
-            }}>
+            <div className="time-slot" data-half-hour={time.endsWith(':30') ? 'true' : undefined}>
               {time}
             </div>
             {weekDates.map((day, idx) => (
-              <div key={idx} style={{
-                borderTop: '1px solid #ccc',
-                borderLeft: idx===0 ? '1px solid #ccc' : '',
-                height: 30,
-                position: 'relative',
-                overflow: 'visible',
-                background: idx%2===0 ? '#fff' : '#f9f9f9'
-              }}>
+              <div key={idx} className="grid-cell">
                 {getPlansStartingInSlot(day, time).map(plan => {
                   const ps = new Date(plan.start_time).getTime();
                   const pe = new Date(plan.end_time).getTime();
@@ -227,25 +236,18 @@ const PlanPage = () => {
                   const top = (vs - ds)/60000 - toMinutes(time);
                   const h   = (ve - vs)/60000;
                   return (
-                    <div key={plan.id}
-                         onClick={()=>handleClickPlan(plan)}
-                         style={{
-                           position: 'absolute',
-                           top: `${top}px`,
-                           left: 2, right: 2,
-                           height: `${h}px`,
-                           background: subjectColorMap[plan.subject_name] || 'rgba(255,147,41,0.85)',
-                           borderRadius: 4,
-                           fontSize: 12,
-                           display: 'flex',
-                           flexDirection: 'column',
-                           justifyContent: 'center',
-                           alignItems: 'center',
-                           cursor: 'pointer',
-                           zIndex: 5
-                         }}>
-                      <strong>{plan.subject_name}</strong>
-                      <span style={{ fontSize: 11 }}>
+                    <div
+                      key={plan.id}
+                      className="plan-block"
+                      onClick={() => handleClickPlan(plan)}
+                      style={{
+                        '--plan-bg': subjectColorMap[plan.subject_name] || 'rgba(255,147,41,0.85)',
+                        '--plan-top': `${top}px`,
+                        '--plan-height': `${h}px`
+                      }}
+                    >
+                      <strong className="plan-subject">{plan.subject_name}</strong>
+                      <span className="plan-time">
                         {new Date(plan.start_time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
                         {' – '}
                         {new Date(plan.end_time).toLocaleTimeString([],   { hour:'2-digit', minute:'2-digit' })}
@@ -259,25 +261,27 @@ const PlanPage = () => {
         ))}
       </div>
 
+      <div className="subject-legend">
+        {Object.entries(subjectColorMap).map(([name, color]) => (
+          <div key={name} className="legend-item">
+            <div
+              className="legend-color"
+              style={{ '--legend-bg': color }}
+            />
+            <span>{name}</span>
+          </div>
+        ))}
+      </div>
+
       <PlanModal
         isOpen={modalOpen}
-        onClose={()=>setModalOpen(false)}
+        onClose={() => setModalOpen(false)}
         onSubmit={handleModalSubmit}
         onDelete={handleDeletePlan}
         mode={modalMode}
         planData={modalData}
         subjects={subjects}
       />
-
-      {/* legend */}
-      <div style={{ marginTop:'2rem', display:'flex', flexWrap:'wrap', gap:'1rem', justifyContent:'center' }}>
-        {Object.entries(subjectColorMap).map(([name,color])=>(
-          <div key={name} style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <div style={{ width:12, height:12, backgroundColor:color, borderRadius:2 }} />
-            <span>{name}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };

@@ -46,31 +46,31 @@ export default function UploadAvatar({ user, setUser }) {
     }
   };
 
-  return (
-    <div className="upload-section">
-      <h3>上傳大頭貼</h3>
-
-      {preview && (
-        <div style={{ marginBottom: '10px' }}>
-          <img src={preview} alt="預覽" style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '50%' }} />
-        </div>
-      )}
-
-      {/* 隱藏的檔案input */}
-      <input
-        type="file"
-        accept="image/*"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
-      />
-
-      {/* 用label做漂亮按鈕 */}
-      <label className="select-file-btn" onClick={() => fileInputRef.current.click()}>
-        選擇檔案
-      </label>
-
-      <div style={{ marginTop: '10px' }}>
+return (
+    <div className="upload-avatar-card">
+      <h3 className="upload-title">上傳大頭貼</h3>
+      <div className="avatar-preview">
+        <img
+          src={preview || `${process.env.REACT_APP_API_URL}/uploads/default-avatar.jpg`}
+          alt="大頭貼預覽"
+          className="avatar-preview-img"
+          onError={(e) => {
+            e.target.onerror = null; // 防止循環錯誤
+            e.target.src = `${process.env.REACT_APP_API_URL}/uploads/default-avatar.jpg`; // 預設圖片
+          }}
+        />
+      </div>
+      <div className="upload-controls">
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <label className="select-file-btn" onClick={() => fileInputRef.current.click()}>
+          選擇檔案
+        </label>
         <button onClick={handleUpload} className="upload-btn">
           上傳照片
         </button>

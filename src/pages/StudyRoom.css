@@ -1,0 +1,467 @@
+/* StudyRoom 專屬樣式 */
+.study-room {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+/* 錯誤訊息 */
+.study-room .error-message {
+    color: #dc3545;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    background: #ffe5e5;
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+}
+
+/* 返回按鈕 */
+.study-room .back-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    background: #e9ecef;
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    margin-bottom: 1.5rem;
+}
+
+.study-room .back-btn:hover {
+    background: #dee2e6;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* 房間資訊 */
+.study-room .studyroom-banner {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.study-room .banner-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.5rem;
+}
+
+.study-room .banner-desc {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0 0 0.75rem;
+}
+
+.study-room .banner-date {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* 學習狀態區域 */
+.study-room .study-section {
+    padding-top: 1rem;
+    margin-bottom: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.study-room .study-status {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+
+.study-room .status-studying {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.study-room .status-idle {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.study-room .subject-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.study-room .subject-select,
+.study-room .subject-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.study-room .subject-select {
+    width: 200px;
+}
+
+.study-room .subject-input {
+    width: 150px;
+}
+
+.study-room .subject-select:hover,
+.study-room .subject-select:focus,
+.study-room .subject-input:hover,
+.study-room .subject-input:focus {
+    border-color: var(--primary-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+.study-room .study-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    background: var(--primary-orange);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.study-room .study-btn:hover {
+    background: var(--primary-orange-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.study-room .study-time {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-top: 1rem;
+}
+
+.study-room .time-highlight {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-orange);
+    background: #fff;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow);
+}
+
+/* 成員列表 */
+.study-room .members-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+}
+
+.study-room .members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.study-room .room-card {
+    background: #fff;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.study-room .room-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.room-card .kick-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem; /* 確保與 width 一致 */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px); /* 玻璃效果 */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%; /* 圓形 */
+    color: var(--primary-orange);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2; /* 微調文字垂直居中 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* 移除內距以避免形狀改變 */
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 突出效果 */
+    transition: transform 0.1s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.room-card .kick-btn:hover {
+    transform: scale(1.1);
+    background: rgba(245, 124, 0, 0.2); /* 懸停時橙色背景 */
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 124, 0, 0.3); /* 懸停時增強陰影 */
+}
+
+.study-room .room-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.study-room .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.study-room .status-online {
+    background: #28a745;
+}
+
+.study-room .status-offline {
+    background: #6b7280;
+}
+
+.study-room .member-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.study-room .study-time {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+/* 成員模態框 */
+.study-room .member-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.study-room .member-card {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+.study-room .close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.study-room .close-btn:hover {
+    color: var(--text-color);
+}
+
+.study-room .member-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: block;
+    box-shadow: var(--shadow);
+}
+
+.study-room .member-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    text-align: center;
+    margin: 0 0 1rem;
+}
+
+.study-room .member-info {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.edit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 確保圖示和文字內部置中 */
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    background: rgba(245, 124, 0, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(245, 124, 0, 0.3);
+    border-radius: 12px;
+    color: var(--primary-orange);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.1s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    animation: fadeIn 0.5s ease-in-out;
+    margin: 1rem auto 0; /* 確保水平置中 */
+    width: fit-content; /* 按鈕寬度根據內容自適應 */
+}
+
+.edit-btn:hover {
+    transform: scale(1.05);
+    background: rgba(245, 124, 0, 0.2);
+    color: white;
+    box-shadow: 0 6px 16px rgba(245, 124, 0, 0.4); /* 懸停時增強陰影 */
+}
+
+.edit-btn:active {
+    transform: scale(0.98); /* 點擊時輕微縮小 */
+}
+
+/* 動畫 */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .study-room {
+        padding: 1.5rem;
+    }
+
+    .study-room .studyroom-banner {
+        padding: 1rem;
+    }
+
+    .study-room .banner-title {
+        font-size: 1.5rem;
+    }
+
+    .study-room .banner-desc {
+        font-size: 0.95rem;
+    }
+
+    .study-room .study-section {
+        padding-top: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .study-room .subject-controls {
+        gap: 0.75rem;
+    }
+
+    .study-room .subject-select,
+    .study-room .subject-input {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .study-room .study-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.95rem;
+    }
+
+    .study-room .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .study-room .member-card {
+        padding: 1.25rem;
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .study-room {
+        padding: 1rem;
+    }
+
+    .study-room .studyroom-banner {
+        padding: 0.75rem;
+    }
+
+    .study-room .banner-title {
+        font-size: 1.25rem;
+    }
+
+    .study-room .banner-desc,
+    .study-room .banner-date {
+        font-size: 0.85rem;
+    }
+
+    .study-room .subject-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .study-room .subject-select,
+    .study-room .subject-input {
+        width: 100%;
+    }
+
+    .study-room .study-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .study-room .members-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .study-room .member-card {
+        padding: 1rem;
+        max-width: 300px;
+    }
+
+    .study-room .member-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .study-room .member-name {
+        font-size: 1.25rem;
+    }
+}

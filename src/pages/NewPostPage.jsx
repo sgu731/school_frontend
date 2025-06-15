@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./NewPostPage.css";
+import { useTranslation } from "react-i18next"; // 導入 useTranslation
 
 export default function NewPostPage() {
     const navigate = useNavigate();
@@ -8,6 +9,7 @@ export default function NewPostPage() {
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("");
     const [categories, setCategories] = useState([]);
+    const { t } = useTranslation('newPost'); // 指定 newPost 命名空間
 
     useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL}/api/categories`)
@@ -23,13 +25,13 @@ export default function NewPostPage() {
 
     const handleSubmit = async () => {
         if (!title.trim() || !content.trim()) {
-            alert("請填寫標題與內容！");
+            alert(t('fillTitleAndContent')); // 使用翻譯
             return;
         }
 
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("請先登入才能發文");
+            alert(t('loginToPost')); // 使用翻譯
             return;
         }
 
@@ -44,31 +46,31 @@ export default function NewPostPage() {
             });
 
             if (res.ok) {
-                alert("✅ 發表成功！");
+                alert(t('postSuccess')); // 使用翻譯
                 navigate("/forum");
             } else {
                 const result = await res.json();
-                alert("❌ 發表失敗: " + result.error);
+                alert(t('postFailed', { error: result.error })); // 使用翻譯
             }
         } catch (err) {
             console.error("發表文章失敗", err);
-            alert("❌ 發文時出錯！");
+            alert(t('postError')); // 使用翻譯
         }
     };
 
     return (
         <div className="new-post-container">
-            <h2>發表新文章</h2>
+            <h2>{t('newPostTitle')}</h2>
 
             <input
                 type="text"
-                placeholder="請輸入標題"
+                placeholder={t('titlePlaceholder')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
             />
 
             <textarea
-                placeholder="請輸入內容"
+                placeholder={t('contentPlaceholder')}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
             />
@@ -82,7 +84,7 @@ export default function NewPostPage() {
                 ))}
             </select>
 
-            <button onClick={handleSubmit}>送出文章</button>
+            <button onClick={handleSubmit}>{t('submitPost')}</button>
         </div>
     );
 }

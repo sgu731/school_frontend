@@ -3,7 +3,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import './PlanPage.css';  // 確保引入樣式檔
+import './TrackerPage.css';  // 確保引入樣式檔
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 const getWeekStart = (d = new Date()) => {
   const s = new Date(d);
@@ -39,6 +40,7 @@ const TrackerPage = () => {
   const [filterSubj, setFilterSubj] = useState('');
   const [startHour, setStartHour] = useState(8);
   const [endHour, setEndHour] = useState(23);
+  const { t } = useTranslation('tracker'); // 指定 tracker 命名空間
 
   const fetchStudyRecords = () => {
     const token = localStorage.getItem('token');
@@ -78,7 +80,7 @@ const TrackerPage = () => {
           Object.entries(pieMap).map(([name, value]) => ({ name, value }))
         );
       })
-      .catch(err => console.error('讀取學習紀錄失敗', err));
+      .catch(err => console.error(t('fetchRecordsFailed'), err));
   };
 
   useEffect(() => {
@@ -181,266 +183,271 @@ const TrackerPage = () => {
     [weekSlots]
   );
 
-  const days = ['日', '一', '二', '三', '四', '五', '六'];
+  const days = [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')];
   const headerDates = useMemo(
     () =>
       Array.from({ length: 7 }, (_, i) => {
         const d = new Date(weekStart);
         d.setDate(d.getDate() + i);
-        return `${d.getMonth() + 1}/${('0' + d.getDate()).slice(-2)} (${
-          days[i]
-        })`;
+        return `${d.getMonth() + 1}/${('0' + d.getDate()).slice(-2)} (${days[i]})`;
       }),
-    [weekStart]
+    [weekStart, days]
   );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      {/* 上方週切換按鈕 */}
-      <div className="week-nav-container">
-        <button className="week-nav-btn" onClick={prevWeek}>
-          ＜ 上週
-        </button>
-        <button
-          className="week-nav-btn"
-          onClick={nextWeek}
-          disabled={!canNext}
-        >
-          下週 ＞
-        </button>
-      </div>
+    <div className="tracker-page">
+      <div className="tracker-page-container">
+        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
+          {/* 上方週切換按鈕 */}
+          <div className="week-nav-container">
+            <button className="week-nav-btn" onClick={prevWeek}>
+              {t('prevWeek')}
+            </button>
+            <button
+              className="week-nav-btn"
+              onClick={nextWeek}
+              disabled={!canNext}
+            >
+              {t('nextWeek')}
+            </button>
+          </div>
 
-      {/* 圖表區 */}
-      <div
-        style={{
-          marginTop: '2rem',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          gap: '2rem',
-          flexWrap: 'wrap'
-        }}
-      >
-        <div style={{ flex: 1, minWidth: '400px' }}>
-          <h3>綜合學習時間</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={weekBarData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" interval={0} tick={{ fontSize: 12 }} />
-              <YAxis />
-              <Tooltip
-                formatter={(v, name) => [
-                  `${Math.floor(v * 60)}分${Math.floor((v * 3600) % 60)}秒`,
-                  name
-                ]}
+          {/* 圖表區 */}
+          <div
+            style={{
+              marginTop: '2rem',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+              gap: '2rem',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ flex: 1, minWidth: '400px' }}>
+              <h3>{t('totalStudyTime')}</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weekBarData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" interval={0} tick={{ fontSize: 12 }} />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(v, name) => [
+                      `${Math.floor(v * 60)}${t('minutes')}${Math.floor((v * 3600) % 60)}${t('seconds')}`,
+                      name
+                    ]}
+                  />
+                  {weekSubjects.map(name => (
+                    <Bar
+                      key={name}
+                      dataKey={name}
+                      stackId="a"
+                      fill={subjectColorMap[name]}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+              <SubjectLegend
+                colorMap={subjectColorMap}
+                shownSubjects={weekSubjects}
               />
-              {weekSubjects.map(name => (
-                <Bar
-                  key={name}
-                  dataKey={name}
-                  stackId="a"
-                  fill={subjectColorMap[name]}
+            </div>
+
+            <div style={{ flex: 1, minWidth: '400px' }}>
+              <h3>{t('studyTimeRatio')}</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Tooltip
+                    formatter={(value, name) => [`${(value * 60).toFixed(0)} ${t('minutes')}`, name]}
+                  />
+                  <Pie
+                    data={weekPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  >
+                    {weekPieData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={subjectColorMap[entry.name]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <SubjectLegend
+                colorMap={subjectColorMap}
+                shownSubjects={weekSubjects}
+              />
+            </div>
+          </div>
+
+          {/* 篩選列 */}
+          <div className="week-nav-time-row">
+            <label className="week-nav-label">{t('startTimeLabel')}</label>
+            <select
+              className="week-nav-select"
+              value={startHour}
+              onChange={e => setStartHour(+e.target.value)}
+            >
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>
+                  {String(i).padStart(2, '0')}:00
+                </option>
+              ))}
+            </select>
+
+            <label className="week-nav-label">{t('endTimeLabel')}</label>
+            <select
+              className="week-nav-select"
+              value={endHour}
+              onChange={e => setEndHour(+e.target.value)}
+            >
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>
+                  {String(i).padStart(2, '0')}:00
+                </option>
+              ))}
+            </select>
+
+            <label className="week-nav-label">{t('filterSubjectLabel')}</label>
+            <select
+              className="week-nav-select"
+              value={filterSubj}
+              onChange={e => setFilterSubj(e.target.value)}
+            >
+              <option value="">{t('allSubjects')}</option>
+              {Object.keys(subjectColorMap)
+                .sort()
+                .map(subj => (
+                  <option key={subj} value={subj}>
+                    {subj}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          {/* 時刻表區 */}
+          <div style={{ marginTop: '2rem' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '60px repeat(7, 1fr)',
+                textAlign: 'center',
+                fontWeight: 500
+              }}
+            >
+              <div></div>
+              {headerDates.map((t, i) => (
+                <div key={i}>{t}</div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '60px repeat(7, 1fr)',
+                gridTemplateRows: `repeat(${(endHour -
+                  startHour +
+                  1) *
+                  2}, 50px)`,
+                border: '1px solid #ddd'
+              }}
+            >
+              {/* 左側時間軸 */}
+              {Array.from({ length: (endHour - startHour + 1) * 2 }).map(
+                (_, i) => {
+                  const hour = startHour + Math.floor(i / 2);
+                  return i % 2 === 0 ? (
+                    <div
+                      key={`time-${i}`}
+                      style={{
+                        gridColumn: 1,
+                        gridRow: `${i + 1}`,
+                        font: 'Segoe UI',
+                        fontSize: 14,
+                        borderRight: '1px solid #ddd',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {`${hour.toString().padStart(2, '0')}:00`}
+                    </div>
+                  ) : (
+                    <div
+                      key={`half-${i}`}
+                      style={{
+                        gridColumn: 1,
+                        gridRow: `${i + 1}`,
+                        borderRight: '1px solid #ddd'
+                      }}
+                    />
+                  );
+                }
+              )}
+
+              {/* 背景格線 */}
+              {Array.from({
+                length: (endHour - startHour + 1) * 2 * 7
+              }).map((_, i) => (
+                <div
+                  key={`bg-${i}`}
+                  style={{ borderBottom: '1px solid rgba(170, 170, 170, 0.5)' }}
                 />
               ))}
-            </BarChart>
-          </ResponsiveContainer>
-          <SubjectLegend
-            colorMap={subjectColorMap}
-            shownSubjects={weekSubjects}
-          />
-        </div>
 
-        <div style={{ flex: 1, minWidth: '400px' }}>
-          <h3>學習時間比例</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Tooltip
-                formatter={(value, name) => [`${(value * 60).toFixed(0)} 分鐘`, name]}
-              />
-              <Pie
-                data={weekPieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-              >
-                {weekPieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={subjectColorMap[entry.name]}
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <SubjectLegend
-            colorMap={subjectColorMap}
-            shownSubjects={weekSubjects}
-          />
-        </div>
-      </div>
-
-      {/* 篩選列 */}
-      <div className="week-nav-time-row">
-        <label className="week-nav-label">開始時間：</label>
-        <select
-          className="week-nav-select"
-          value={startHour}
-          onChange={e => setStartHour(+e.target.value)}
-        >
-          {Array.from({ length: 24 }, (_, i) => (
-            <option key={i} value={i}>
-              {String(i).padStart(2, '0')}:00
-            </option>
-          ))}
-        </select>
-
-        <label className="week-nav-label">結束時間：</label>
-        <select
-          className="week-nav-select"
-          value={endHour}
-          onChange={e => setEndHour(+e.target.value)}
-        >
-          {Array.from({ length: 24 }, (_, i) => (
-            <option key={i} value={i}>
-              {String(i).padStart(2, '0')}:00
-            </option>
-          ))}
-        </select>
-
-        <label className="week-nav-label">顯示科目：</label>
-        <select
-          className="week-nav-select"
-          value={filterSubj}
-          onChange={e => setFilterSubj(e.target.value)}
-        >
-          <option value="">全部科目</option>
-          {Object.keys(subjectColorMap)
-            .sort()
-            .map(subj => (
-              <option key={subj} value={subj}>
-                {subj}
-              </option>
-            ))}
-        </select>
-      </div>
-
-      {/* 時刻表區 */}
-      <div style={{ marginTop: '2rem' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '60px repeat(7, 1fr)',
-            textAlign: 'center',
-            fontWeight: 500
-          }}
-        >
-          <div></div>
-          {headerDates.map((t, i) => (
-            <div key={i}>{t}</div>
-          ))}
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '60px repeat(7, 1fr)',
-            gridTemplateRows: `repeat(${(endHour -
-              startHour +
-              1) *
-              2}, 20px)`,
-            border: '1px solid #ddd'
-          }}
-        >
-          {/* 左側時間軸 */}
-          {Array.from({ length: (endHour - startHour + 1) * 2 }).map(
-            (_, i) => {
-              const hour = startHour + Math.floor(i / 2);
-              return i % 2 === 0 ? (
-                <div
-                  key={`time-${i}`}
-                  style={{
-                    gridColumn: 1,
-                    gridRow: `${i + 1}`,
-                    fontSize: 10,
-                    borderRight: '1px solid #ddd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {`${hour.toString().padStart(2, '0')}:00`}
-                </div>
-              ) : (
-                <div
-                  key={`half-${i}`}
-                  style={{
-                    gridColumn: 1,
-                    gridRow: `${i + 1}`,
-                    borderRight: '1px solid #ddd'
-                  }}
-                />
-              );
-            }
-          )}
-
-          {/* 背景格線 */}
-          {Array.from({
-            length: (endHour - startHour + 1) * 2 * 7
-          }).map((_, i) => (
-            <div
-              key={`bg-${i}`}
-              style={{ borderBottom: '1px solid #f5f5f5' }}
-            />
-          ))}
-
-          {/* 實際計畫顯示 */}
-          {Object.entries(groupedSlots).map(([key, group]) => {
-            const [col, rowStart] = key.split('_').map(Number);
-            const span = Math.max(...group.map(s => s.span));
-            return (
-              <div
-                key={key}
-                style={{
-                  gridColumn: col + 2,
-                  gridRow: `${rowStart - startHour * 2 +
-                    1} / span ${span}`,
-                  display: 'flex'
-                }}
-              >
-                {group.map((s, i) => (
+              {/* 實際計畫顯示 */}
+              {Object.entries(groupedSlots).map(([key, group]) => {
+                const [col, rowStart] = key.split('_').map(Number);
+                const span = Math.max(...group.map(s => s.span));
+                return (
                   <div
-                    key={i}
-                    title={`${s.subject} ${s.startTime.toLocaleTimeString(
-                      [],
-                      {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }
-                    )} – ${s.endTime.toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}`}
+                    key={key}
                     style={{
-                      flex: 1,
-                      background: subjectColorMap[s.subject],
-                      color: '#fff',
-                      fontSize: 10,
-                      padding: 2,
-                      borderRadius: 4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      gridColumn: col + 2,
+                      gridRow: `${rowStart - startHour * 2 +
+                        1} / span ${span}`,
+                      display: 'flex'
                     }}
                   >
-                    {s.subject}
+                    {group.map((s, i) => (
+                      <div
+                        key={i}
+                        title={`${s.subject} ${s.startTime.toLocaleTimeString(
+                          [],
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }
+                        )} – ${s.endTime.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}`}
+                        style={{
+                          flex: 1,
+                          background: subjectColorMap[s.subject],
+                          color: '#fff',
+                          font: 'Segoe UI',
+                          fontSize: 12,
+                          padding: 2,
+                          borderRadius: 4,
+                          display: 'flex',
+                          textAlign: 'center',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        {s.subject}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
+import { IconMail, IconArrowLeft } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { t } = useTranslation('forgotPassword'); // 指定 forgotPassword 命名空間
 
   const handleSubmit = async () => {
     if (!email) {
-      setMessage('請輸入 Email');
+      setMessage(t('enterEmail')); // 使用翻譯
       return;
     }
 
@@ -24,49 +29,44 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json();
       console.log('伺服器回傳：', data); // Debug 用
-      setMessage(data.message || '請稍後再試一次');
+      setMessage(data.message || t('tryAgainLater')); // 使用翻譯
     } catch (error) {
       console.error('發送失敗:', error);
-      setMessage('發送失敗，請稍後再試');
+      setMessage(t('sendFailed')); // 使用翻譯
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', textAlign: 'center' }}>
-      <h2>忘記密碼</h2>
-      <input
-        type="email"
-        placeholder="請輸入註冊用的 Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px',
-          marginBottom: '10px',
-          borderRadius: '6px',
-          border: '1px solid #ccc'
-        }}
-      />
-      <br />
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: loading ? 'not-allowed' : 'pointer'
-        }}
-      >
-        {loading ? '發送中...' : '送出重設連結'}
-      </button>
-      {message && (
-        <p style={{ marginTop: '20px', color: '#333' }}>{message}</p>
-      )}
+    <div className="forgot-password-page">
+      <div className="forgot-password-container">
+        <div className="back-arrow-container">
+          <button className="back-arrow" onClick={() => navigate('/login')}>
+            <IconArrowLeft size={24} />
+          </button>
+        </div>        
+        <h1>{t('forgotPasswordTitle')}</h1>
+        <div className="form-group">
+          <div className="input-wrapper">
+            <IconMail className="input-icon" size={20} />
+            <input
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+        <button
+          className="reset-btn"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? t('sending') : t('sendResetLink')}
+        </button>
+        {message && <p className="message">{message}</p>}
+      </div>
     </div>
   );
 }

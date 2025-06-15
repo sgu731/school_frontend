@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IconUser, IconLock, IconMail, IconArrowLeft } from '@tabler/icons-react';
+import './RegisterPage.css';
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -8,10 +11,11 @@ function RegisterPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation('register'); // 指定 register 命名空間
 
   const handleRegister = async () => {
     if (!username || !password || !name || !email) {
-      alert('請填寫所有欄位');
+      alert(t('fillAllFields')); // 使用翻譯
       return;
     }
 
@@ -23,63 +27,76 @@ function RegisterPage() {
 
     const data = await response.json();
     if (response.ok) {
-      alert('註冊成功！請登入');
+      alert(t('registerSuccess')); // 使用翻譯
       navigate('/login');
     } else {
-      setMessage(data.message || '註冊失敗');
+      setMessage(data.message || t('registerFailed')); // 使用翻譯
     }
   };
 
   return (
-    <form
-      style={{ padding: '2rem', maxWidth: '400px', margin: '0 auto' }}
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleRegister();
-      }}
-    >
-      <h2>註冊新帳號</h2>
+    <div className="register-page">
+      <div className="register-container">
+        <div className="back-arrow-container">
+          <button className="back-arrow" onClick={() => navigate('/login')}>
+            <IconArrowLeft size={24} />
+          </button>
+        </div>        
+        <h1>{t('registerTitle')}</h1>
 
-      <div className="form-group">
-        <input
-          type="text"
-          placeholder="名字"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <div className="form-group">
+          <div className="input-wrapper">
+            <IconUser className="input-icon" size={20} />
+            <input
+              type="text"
+              placeholder={t('usernamePlaceholder')}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="input-wrapper">
+            <IconLock className="input-icon" size={20} />
+            <input
+              type="password"
+              placeholder={t('passwordPlaceholder')}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="input-wrapper">
+            <IconUser className="input-icon" size={20} />
+            <input
+              type="text"
+              placeholder={t('namePlaceholder')}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+        </div>        
+
+        <div className="form-group">
+          <div className="input-wrapper">
+            <IconMail className="input-icon" size={20} />
+            <input
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <button className="register-btn" onClick={handleRegister}>{t('register')}</button>
+
+        {message && <p className="message">{message}</p>}
       </div>
-
-      <div className="form-group">
-        <input
-          type="text"
-          placeholder="帳號"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </div>
-
-      <div className="form-group">
-        <input
-          type="password"
-          placeholder="密碼"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-
-      <div className="form-group">
-        <input
-          type="email"
-          placeholder="Email（用來重設密碼）"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-
-      <button className="enter-btn" type="submit">註冊</button>
-
-      {message && <p style={{ color: 'red' }}>{message}</p>}
-    </form>
+    </div>
   );
 }
 

@@ -1,14 +1,390 @@
-.note-btn {
-    padding: 6px 16px;
+/* 限定樣式僅適用於 NoteDetailPage.jsx */
+.note-detail-page {
+  background: var(--light-bg);
+
+  .note-header {
+    background: #ffffff;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .note-btn {
+    padding: 0.75rem 1.5rem;
     font-size: 0.95rem;
-    background-color: #eeeeee;
-    color: #333;
+    background-color: var(--primary-orange);
+    color: #ffffff;
     border: none;
-    border-radius: 12px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
   }
-  
+
   .note-btn:hover {
-    background-color: #dcdcdc;
+    background-color: var(--primary-orange-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
   }
+
+  .note-btn--back {
+    background-color: var(--gray);
+    padding: 0.5rem 1rem;
+  }
+
+  .note-btn--back:hover {
+    background-color: var(--gray-hover);
+  }
+
+  .note-btn--danger {
+    background-color: var(--danger-red);
+  }
+
+  .note-btn--danger:hover {
+    background-color: var(--danger-red-hover);
+  }
+
+  .note-btn--success {
+    background-color: var(--success-green);
+  }
+
+  .note-btn--success:hover {
+    background-color: var(--success-green-hover);
+  }
+
+  .note-title-input {
+    flex: 1;
+    max-width: 500px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .note-title-input:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+  }
+
+  .note-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-orange) #f8f9fa;
+  }
+
+  .note-content::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .note-content::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-content::-webkit-scrollbar-thumb {
+    background: var(--primary-orange);
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-layout {
+    display: flex;
+    flex: 1;
+    width: 100%;
+  }
+
+  .note-editor-container {
+    flex: 2;
+    min-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-orange) #f8f9fa;
+  }
+
+  .note-editor-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .note-editor-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-editor-container::-webkit-scrollbar-thumb {
+    background: var(--primary-orange);
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-analysis-sidebar {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-orange) #f8f9fa;
+  }
+
+  .note-analysis-sidebar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .note-analysis-sidebar::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-analysis-sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-orange);
+    border-radius: var(--border-radius-sm);
+  }
+
+  .note-toolbar-wrapper {
+    position: absolute;
+    z-index: 90;
+    display: block; /* 確保顯示 */
+  }  
+
+  .note-toolbar {
+    background: #ffffff;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    height: 2.5rem;
+    overflow: visible;
+    transition: transform 0.2s ease;
+    z-index: 90;
+  }
+
+  .note-toolbar:hover {
+    transform: scale(1.02);
+  }
+
+  .note-toolbar__button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    color: var(--text-color);
+    line-height: 1.5rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .note-toolbar__button:hover {
+    background-color: var(--primary-orange);
+    color: #ffffff;
+  }
+
+  .note-translate-menu {
+    position: absolute; /* 脫離 toolbar 的 flex 佈局 */
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow);
+    min-width: 120px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+  }
+
+  .note-translate-menu__item {
+    padding: 0.5rem 1rem;
+    text-align: left;
+    display: flex;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .note-translate-menu__item:hover {
+    background-color: var(--primary-orange);
+    color: #ffffff;
+  }
+
+  .note-loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: 50%;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .note-loading__spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    animation: spin 1s linear infinite;
+    color: var(--primary-orange);
+  }
+
+  .note-analysis-timeline {
+    margin-top: 0;
+  }
+
+  .note-analysis-card {
+    position: relative;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .note-analysis-card:hover {
+    background-color: #f8f9fa;
+  }
+
+  .note-analysis-card::before {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 1rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--primary-orange);
+    border-radius: 50%;
+  }
+
+  .note-analysis-card::after {
+    content: '';
+    position: absolute;
+    left: 0.95rem;
+    top: 1.5rem;
+    bottom: -1rem;
+    width: 2px;
+    background: var(--border-color);
+  }
+
+  .note-analysis-card:last-child::after {
+    display: none;
+  }
+
+  .note-analysis-card__title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--primary-orange);
+    margin-bottom: 0.5rem;
+  }
+
+  .note-analysis-card__preview {
+    font-size: 0.875rem;
+    color: var(--text-color);
+    overflow-wrap: break-word;
+    flex-grow: 1;
+  }
+
+  .note-analysis-view-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--primary-orange);
+    align-self: flex-end;
+  }
+
+  .note-analysis-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .note-analysis-modal-content {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: var(--border-radius-sm);
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+
+  .note-analysis-modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--primary-orange);
+    margin-bottom: 1rem;
+  }
+
+  .note-analysis-close-btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--danger-red);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+  }
+
+  .note-analysis-close-btn:hover {
+    background-color: var(--danger-red-hover);
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .note-content {
+      flex-direction: column;
+      max-width: 600px;
+    }
+
+    .note-layout {
+      flex-direction: column;
+    }
+
+    .note-editor-container {
+      min-height: 300px;
+    }
+
+    .note-analysis-sidebar {
+      min-width: 100%;
+      max-width: 100%;
+    }
+
+    .note-analysis-modal-content {
+      max-width: 90vw;
+    }
+  }
+}

@@ -5,7 +5,8 @@ import { Button } from "../components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./VoicePage.css"; 
+import "./VoicePage.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 export default function VoicePage() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function VoicePage() {
   const recognitionRef = useRef(null);
   const token = localStorage.getItem("token");
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+  const { t } = useTranslation('voice'); // 指定 voice 命名空間
 
   const [transcript, setTranscript] = useState("");
   const [translated, setTranslated] = useState("");
@@ -32,9 +34,16 @@ export default function VoicePage() {
     const fetchRecordings = async () => {
       try {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/recordings`, authHeader);
-        setRecordings(res.data.recordings || []);
+        // 將 file_path (作為 url) 轉為完整 URL
+        const recordingsWithUrl = (res.data.recordings || []).map((rec) => ({
+          ...rec,
+          file_path: rec.url, // 後端返回 file_path 作為 url
+          url: `${process.env.REACT_APP_API_URL}/${rec.url}`, // 拼接完整 URL
+        }));
+        setRecordings(recordingsWithUrl);
       } catch (err) {
-        console.error("讀取錄音失敗", err);
+        console.error(t('fetchRecordingsFailed'), err);
+        alert(t('loadLibraryFailed'));
       }
     };
     fetchRecordings();
@@ -51,65 +60,120 @@ export default function VoicePage() {
   };
 
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream);
-    audioChunks.current = [];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunks.current = [];
 
-    mediaRecorderRef.current.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunks.current.push(e.data);
-    };
-
-    mediaRecorderRef.current.onstop = async () => {
-      if (audioChunks.current.length === 0) {
-        alert("⚠️ 錄音失敗：沒有有效音訊，請錄久一點再試一次。");
-        return;
-      }
-      const blob = new Blob(audioChunks.current, { type: "audio/webm" });
-      const now = new Date();
-      const formattedDuration = `${String(Math.floor(recordingTime / 60)).padStart(2, "0")}:${String(recordingTime % 60).padStart(2, "0")}`;
-      const localTime = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-      const formData = new FormData();
-      formData.append("audio", blob);
-      formData.append("title", `錄音 ${recordings.length + 1}`);
-      formData.append("duration", formattedDuration);
-      formData.append("time", localTime);
-      formData.append("text", transcript);
-      formData.append("translation", translated);
-
-      try {
-        const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/recordings`, formData, authHeader);
-        setRecordings((prev) => [...prev, res.data.recording]);
-      } catch (err) {
-        console.error("錄音儲存失敗", err);
-      }
-    };
-
-    mediaRecorderRef.current.start();
-    setRecordingTime(0);
-    timerRef.current = setInterval(() => setRecordingTime((prev) => prev + 1), 1000);
-    setPaused(false);
-    setRecording(true);
-    setTranscript("");
-    setTranslated("");
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = language;
-
-      recognitionRef.current.onresult = (e) => {
-        let result = "";
-        for (let i = e.resultIndex; i < e.results.length; ++i) {
-          result += e.results[i][0].transcript;
-        }
-        setTranscript((prev) => prev + result);
-        if (enableTranslation) translateText(result);
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.current.push(e.data);
       };
 
-      recognitionRef.current.start();
+      mediaRecorderRef.current.onstop = async () => {
+        if (audioChunks.current.length === 0) {
+          alert(t('recordingFailedNoAudio'));
+          return;
+        }
+        if (!transcript) {
+          alert(t('noSpeechContent'));
+          return;
+        }
+
+        const blob = new Blob(audioChunks.current, { type: "audio/webm" });
+        const now = new Date();
+        const formattedDuration = `${String(Math.floor(recordingTime / 60)).padStart(2, "0")}:${String(recordingTime % 60).padStart(2, "0")}`;
+        const localTime = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+        const formData = new FormData();
+        formData.append("audio", blob, `${Date.now()}.webm`);
+        formData.append("title", t('recordingTitle', { count: recordings.length + 1 }));
+        formData.append("duration", formattedDuration);
+        formData.append("time", localTime);
+        formData.append("text", transcript || "");
+        formData.append("translation", translated || "");
+
+        console.log("發送 formData:", { title: t('recordingTitle', { count: recordings.length + 1 }), duration: formattedDuration, time: localTime, text: transcript, translation: translated });
+
+        try {
+          const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/recordings`, formData, authHeader);
+          const newRecording = {
+            ...res.data.recording,
+            file_path: res.data.recording.url, // 後端返回 file_path 作為 url
+            url: `${process.env.REACT_APP_API_URL}/${res.data.recording.url}`, // 拼接完整 URL
+          };
+          setRecordings((prev) => [...prev, newRecording]);
+          alert(t('recordingSaved'));
+        } catch (err) {
+          console.error(t('saveRecordingFailed'), err.response?.data || err.message);
+          alert(t('saveRecordingError'));
+        }
+      };
+
+      mediaRecorderRef.current.start();
+      setRecordingTime(0);
+      timerRef.current = setInterval(() => setRecordingTime((prev) => prev + 1), 1000);
+      setPaused(false);
+      setRecording(true);
+      setTranscript("");
+      setTranslated("");
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = language;
+
+        recognitionRef.current.onstart = () => {
+          console.log(t('speechRecognitionStarted', { language }));
+        };
+
+        recognitionRef.current.onresult = (e) => {
+          let interim = "";
+          let final = "";
+          for (let i = e.resultIndex; i < e.results.length; ++i) {
+            const transcript = e.results[i][0].transcript;
+            if (e.results[i].isFinal) {
+              final += transcript;
+            } else {
+              interim += transcript;
+            }
+          }
+          console.log(t('finalTranscript'), final, t('interimTranscript'), interim);
+          setTranscript((prev) => prev + final);
+          if (enableTranslation && final) {
+            translateText(final);
+          }
+        };
+
+        recognitionRef.current.onerror = (e) => {
+          console.error(t('speechRecognitionError'), e.error, e.message);
+          if (e.error === "not-allowed") {
+            alert(t('micPermissionDenied'));
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          console.log(t('speechRecognitionEnded'));
+          if (recording) {
+            console.log(t('speechRecognitionRestart'));
+            setTimeout(() => recognitionRef.current?.start(), 500);
+          }
+        };
+
+        try {
+          recognitionRef.current.start();
+        } catch (err) {
+          console.error(t('speechRecognitionStartFailed'), err);
+          alert(t('speechRecognitionStartError'));
+        }
+      } else {
+        console.error(t('browserNotSupported'));
+        alert(t('unsupportedBrowser'));
+      }
+    } catch (err) {
+      console.error(t('recordingStartFailed'), err);
+      alert(t('micPermissionError'));
     }
   };
 
@@ -125,23 +189,30 @@ export default function VoicePage() {
 
   const translateText = async (text) => {
     if (!text) return;
-    const response = await fetch(
-      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=" +
-        language +
-        "&dt=t&q=" +
-        encodeURIComponent(text)
-    );
-    const data = await response.json();
-    const translatedText = data[0].map((item) => item[0]).join("");
-    setTranslated(translatedText);
+    try {
+      const response = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${language}&dt=t&q=${encodeURIComponent(text)}`
+      );
+      if (!response.ok) {
+        throw new Error(t('translationFailed', { status: response.status, statusText: response.statusText }));
+      }
+      const data = await response.json();
+      const translatedText = data[0].map((item) => item[0]).join("");
+      console.log(t('translationResult'), translatedText);
+      setTranslated((prev) => prev + translatedText);
+    } catch (err) {
+      console.error(t('translationError'), err);
+    }
   };
 
   const deleteRecording = async (id) => {
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/recordings/${id}`, authHeader);
       setRecordings(recordings.filter((r) => r.id !== id));
+      alert(t('recordingDeleted'));
     } catch (err) {
-      console.error("刪除錄音失敗", err);
+      console.error(t('deleteRecordingFailed'), err);
+      alert(t('deleteRecordingError'));
     }
   };
 
@@ -152,15 +223,18 @@ export default function VoicePage() {
         { title: newTitle },
         authHeader
       );
-      const updated = recordings.map((r) => (r.id === id ? res.data.recording : r));
+      const updated = recordings.map((r) => (r.id === id ? { ...res.data.recording, file_path: r.file_path, url: r.url } : r));
       setRecordings(updated);
       setEditingId(null);
+      alert(t('titleUpdated'));
     } catch (err) {
-      console.error("更新標題失敗", err);
+      console.error(t('updateTitleFailed'), err);
+      alert(t('updateTitleError'));
     }
   };
 
-  const downloadRecording = (url, title) => {
+  const downloadRecording = (file_path, title) => {
+    const url = `${process.env.REACT_APP_API_URL}/${file_path}`;
     const a = document.createElement("a");
     a.href = url;
     a.download = `${title}.webm`;
@@ -181,66 +255,66 @@ export default function VoicePage() {
       });
 
       if (!res.ok) {
-        throw new Error(`伺服器錯誤，狀態碼 ${res.status}`);
+        throw new Error(t('serverError', { status: res.status }));
       }
 
       const result = await res.json();
       if (result.text) {
         const newNote = {
-          title: `Whisper 語音轉文字`,
+          title: t('whisperTitle'),
           content: result.text,
           date: new Date().toISOString(),
         };
         const existing = JSON.parse(localStorage.getItem("importedNotes")) || [];
         const updated = [...existing, newNote];
         localStorage.setItem("importedNotes", JSON.stringify(updated));
-        alert("✅ Whisper轉文字成功！");
+        alert(t('whisperSuccess'));
       } else {
-        alert("❌ Whisper轉文字失敗，伺服器沒有返回正確資料。");
+        alert(t('whisperFailure'));
       }
     } catch (error) {
-      console.error("上傳失敗：", error);
-      alert("❌ 上傳或轉文字失敗，請確認伺服器是否正確運作！");
+      console.error(t('uploadFailed'), error);
+      alert(t('uploadOrTranscribeFailed'));
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">語音</h2>
+      <h2 className="text-2xl font-bold mb-6">{t('voiceTitle')}</h2>
 
       {!view && (
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
           <Card onClick={() => navigate("/recording")} style={cardStyle}>
             <Mic size={36} />
-            <p className="mt-2 text-sm">錄音</p>
+            <p className="mt-2 text-sm">{t('record')}</p>
           </Card>
           <Card onClick={() => navigate("/transcribe")} style={cardStyle}>
             <Upload size={36} />
-            <p className="mt-2 text-sm">上傳錄音</p>
+            <p className="mt-2 text-sm">{t('uploadRecording')}</p>
           </Card>
           <Card onClick={() => setView("library")} style={cardStyle}>
             <Library size={36} />
-            <p className="mt-2 text-sm">語音庫</p>
+            <p className="mt-2 text-sm">{t('voiceLibrary')}</p>
           </Card>
         </div>
       )}
 
       {view === "library" && (
         <div className="mt-6">
-          <button onClick={() => setView(null)} className="voice-page-btn mb-4">返回</button>
+          <button onClick={() => setView(null)} className="voice-page-btn mb-4">{t('back')}</button>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...recordings].reverse().map((rec) => (
               <div key={rec.id} className="border rounded-xl p-4 shadow hover:shadow-md transition">
                 {editingId === rec.id ? (
                   <div className="flex items-center gap-2 mb-2">
                     <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="border p-1 rounded" />
-                    <button className="voice-page-btn" onClick={() => updateTitle(rec.id, editTitle)}>✅ 儲存</button>
-                    <button className="voice-page-btn" onClick={() => setEditingId(null)}>❌ 取消</button>
+                    <button className="voice-page-btn" onClick={() => updateTitle(rec.id, editTitle)}>{t('save')}</button>
+                    <button className="voice-page-btn" onClick={() => setEditingId(null)}>{t('cancel')}</button>
                   </div>
                 ) : (
                   <div
                     className="text-lg font-bold whitespace-nowrap cursor-pointer"
-                    onClick={() => navigate("/recording-detail", { state: rec })}
+                    //onClick={() => navigate("/recording-detail", { state: rec })}
                   >
                     {rec.title}
                     <button
@@ -256,14 +330,14 @@ export default function VoicePage() {
                   </div>
                 )}
                 <p className="text-xs text-gray-300">{formatDate(rec.time)}</p>
-                <p className="text-sm text-gray-500">時長：{rec.duration}</p>
+                <p className="text-sm text-gray-500">{t('duration')}: {rec.duration}</p>
                 <audio controls src={rec.url} className="w-full my-2" />
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <button className="voice-page-btn" onClick={() => downloadRecording(rec.url, rec.title)}>
-                    <Download size={16} className="mr-2 inline-block" />下載音檔
+                  <button className="voice-page-btn" onClick={() => downloadRecording(rec.file_path, rec.title)}>
+                    <Download size={16} className="mr-2 inline-block" />{t('downloadAudio')}
                   </button>
                   <button className="voice-page-btn" onClick={() => deleteRecording(rec.id)}>
-                    🗑️ 刪除
+                    🗑️ {t('delete')}
                   </button>
                 </div>
               </div>

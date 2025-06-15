@@ -1,88 +1,361 @@
+/* PlanPage 專屬樣式 */
+.plan-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+/* 週導航 */
 .week-nav-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
 }
 
 .week-nav-btn {
-  padding: 6px 16px;
-  font-size: 0.95rem;
-  background-color: #eeeeee;
-  color: #333;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    background: #e9ecef;
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
 .week-nav-btn:hover {
-  background-color: #dcdcdc;
+    background: #dee2e6;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
 }
 
 .week-nav-btn.primary {
-  background-color: #f57c00;
-  color: white;
+    background: var(--primary-orange);
+    color: white;
 }
 
 .week-nav-btn.primary:hover {
-  background-color: #ef6c00;
+    background: var(--primary-orange-hover);
 }
 
+/* 日期選擇器 */
 .week-nav-date-picker {
-  padding: 6px 12px;
-  font-size: 0.95rem;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    z-index: 50;
 }
 
-.week-nav-top {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  align-items: center;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+.week-nav-date-picker:hover,
+.week-nav-date-picker:focus {
+    border-color: var(--primary-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
 }
 
+/* react-datepicker 日曆 */
+.react-datepicker {
+    z-index: 100 !important;
+}
+
+.react-datepicker__month-container,
+.react-datepicker__header,
+.react-datepicker__day {
+    z-index: 100 !important;
+}
+
+/* 時間選擇列 */
 .week-nav-time-row {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-/* 開始時間選擇列 美編 */
-.week-nav-time-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1rem 0;
 }
 
 .week-nav-label {
-  font-size: 0.95rem;
-  color: #333;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 .week-nav-select {
-  padding: 6px 12px;
-  font-size: 0.95rem;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  transition: border-color 0.2s ease;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .week-nav-select:hover,
 .week-nav-select:focus {
-  border-color: #f57c00;
-  outline: none;
+    border-color: var(--primary-orange);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+/* 計畫表格 */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 160px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow-x: auto;
+    width: fit-content;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: var(--shadow);
+}
+
+.grid-header {
+    text-align: center;
+    padding: 0.75rem;
+    background: #e9ecef;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    position: sticky;
+    top: 0;
+    z-index: 0;
+}
+
+.grid-header.empty-cell {
+    background: transparent;
+    border: none;
+}
+
+.time-slot {
+    height: 36px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.time-slot:not([data-half-hour]) {
+    font-weight: 600;
+    background: #f1f3f5;
+    border-top: 2px solid #adb5bd;
+}
+
+.time-slot[data-half-hour] {
+    color: transparent;
+    border-top: 1px solid var(--border-color);
+}
+
+.grid-cell {
+    height: 36px;
+    border-top: 1px solid var(--border-color);
+    border-left: 1px solid var(--border-color);
+    position: relative;
+    overflow: visible;
+    background: linear-gradient(180deg, #ffffff 50%, #f8f9fa 50%);
+}
+
+.grid-cell:not([data-half-hour]) {
+    background: #ffffff;
+    border-top: 1px solid #adb5bd;
+}
+
+.grid-cell[data-half-hour] {
+    border-top: 1px solid var(--border-color);
+}
+
+.grid-cell:nth-child(8n + 2) {
+    border-left: none;
+}
+
+/* 計畫方塊 */
+.plan-block {
+    position: absolute;
+    top: var(--plan-top);
+    left: 4px;
+    right: 4px;
+    height: var(--plan-height);
+    background: var(--plan-bg);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.plan-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.plan-subject {
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.plan-time {
+    font-size: 0.75rem;
+    color: #f8f9fa;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* 圖例 */
+.subject-legend {
+    margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    background: var(--legend-bg);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+}
+
+.legend-item span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .plan-page {
+        padding: 1.5rem;
+    }
+
+    .week-nav-container {
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .week-nav-btn,
+    .week-nav-date-picker,
+    .week-nav-select {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .week-nav-time-row {
+        gap: 0.5rem;
+        margin: 0.75rem 0;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 60px repeat(7, 120px);
+    }
+
+    .grid-header {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+
+    .time-slot {
+        font-size: 0.8rem;
+        height: 32px;
+    }
+
+    .time-slot:not([data-half-hour]) {
+        font-weight: 600;
+        border-top: 1.5px solid #adb5bd;
+    }
+
+    .grid-cell {
+        height: 32px;
+    }
+
+    .grid-cell:not([data-half-hour]) {
+        border-top: 1.5px solid #adb5bd;
+    }
+
+    .plan-block {
+        font-size: 0.75rem;
+    }
+
+    .plan-time {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .week-nav-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .week-nav-btn,
+    .week-nav-date-picker,
+    .week-nav-select {
+        width: 100%;
+        text-align: center;
+    }
+
+    .week-nav-time-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .week-nav-label {
+        text-align: center;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 50px repeat(7, 100px);
+    }
+
+    .grid-header {
+        font-size: 0.8rem;
+    }
+
+    .time-slot {
+        font-size: 0.75rem;
+        height: 28px;
+    }
+
+    .time-slot:not([data-half-hour]) {
+        font-weight: 500;
+        border-top: 1px solid #adb5bd;
+    }
+
+    .grid-cell {
+        height: 28px;
+    }
+
+    .grid-cell:not([data-half-hour]) {
+        border-top: 1px solid #adb5bd;
+    }
+
+    .subject-legend {
+        gap: 1rem;
+    }
+
+    .legend-item span {
+        font-size: 0.85rem;
+    }
 }

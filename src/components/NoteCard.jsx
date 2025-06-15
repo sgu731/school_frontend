@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./NoteListtwo.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 function NoteCard({ note, toggleBookmark }) {
     const navigate = useNavigate();
+    const { t } = useTranslation('noteCard'); // 指定 noteCard 命名空間
 
     const handleClick = () => {
         navigate(`/sharing/${note.id}`);
@@ -20,18 +22,18 @@ function NoteCard({ note, toggleBookmark }) {
                         e.stopPropagation(); // 防止點到跳轉
                         toggleBookmark(note.id);
                     }}
-                    title={note.bookmarked ? "取消收藏" : "加入收藏"}
+                    title={note.bookmarked ? t('removeBookmark') : t('addBookmark')}
                 >
                     {note.bookmarked ? "⭐" : "☆"}
                 </button>
             </div>
 
             {/* 作者 */}
-            <p className="note-author">👤 作者：{note.author}</p>
+            <p className="note-author">👤 {t('author')}: {note.author}</p>
 
             {/* 建立時間（若後端有提供 created_at 欄位） */}
             {note.created_at && (
-                <p className="note-date">🕒 發佈時間：{note.created_at.slice(0, 10)}</p>
+                <p className="note-date">🕒 {t('publishTime')}: {note.created_at.slice(0, 10)}</p>
             )}
 
             {/* 計數資訊 */}

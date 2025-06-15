@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ThreadDetailPage.css";
+import { useTranslation } from 'react-i18next'; // 導入 useTranslation
 
 export default function ThreadDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const bottomRef = useRef(null);
+    const { t } = useTranslation('threadDetail'); // 指定 threadDetail 命名空間
 
     const [thread, setThread] = useState(null);
     const [newReply, setNewReply] = useState("");
@@ -16,7 +18,7 @@ export default function ThreadDetailPage() {
     useEffect(() => {
         fetch(`${process.env.REACT_APP_API_URL}/api/forum/${id}`)
             .then(res => {
-                if (!res.ok) throw new Error("找不到貼文");
+                if (!res.ok) throw new Error(t('postNotFound'));
                 return res.json();
             })
             .then(data => {
@@ -24,11 +26,11 @@ export default function ThreadDetailPage() {
                 setError("");
             })
             .catch(err => {
-                console.error("載入討論串失敗", err);
-                setError("❌ 找不到這篇討論串！");
+                console.error(t('loadThreadFailed'), err);
+                setError(t('threadNotFound'));
             })
             .finally(() => setLoading(false));
-    }, [id]);
+    }, [id, t]);
 
     // 滑動到留言區底部
     useEffect(() => {
@@ -41,7 +43,7 @@ export default function ThreadDetailPage() {
 
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("請先登入才能留言！");
+            alert(t('loginToComment'));
             return;
         }
 
@@ -56,12 +58,12 @@ export default function ThreadDetailPage() {
             });
 
             const result = await res.json();
-            if (!res.ok) throw new Error(result.error || "留言失敗");
+            if (!res.ok) throw new Error(result.error || t('commentFailed'));
 
             const newComment = result.reply || result;
 
             if (!newComment || !newComment.author || !newComment.text) {
-                throw new Error("回傳格式錯誤");
+                throw new Error(t('invalidResponseFormat'));
             }
 
             setThread(prev => ({
@@ -71,25 +73,25 @@ export default function ThreadDetailPage() {
 
             setNewReply("");
         } catch (err) {
-            console.error("送出留言失敗", err);
-            alert("❌ 無法送出留言：" + err.message);
+            console.error(t('submitCommentFailed'), err);
+            alert(t('submitCommentError', { message: err.message }));
         }
     };
 
-    if (loading) return <div>載入中...</div>;
+    if (loading) return <div>{t('loading')}</div>;
     if (error) return <div>{error}</div>;
 
     return (
         <div className="thread-detail-container">
             <button className="back-button" onClick={() => navigate(-1)}>
-                ← 返回討論區
+                {t('backToForum')}
             </button>
 
             <div className="thread-title">{thread.title}</div>
-            <div className="thread-author">發文者：{thread.author}</div>
+            <div className="thread-author">{t('postedBy', { author: thread.author })}</div>
             <p className="thread-content">{thread.content}</p>
 
-            <h3>留言區</h3>
+            <h3>{t('commentSection')}</h3>
             <div className="replies">
                 {(thread.replies || []).map((reply) => (
                     <div key={reply.id} className="reply">
@@ -106,9 +108,9 @@ export default function ThreadDetailPage() {
                 <textarea
                     value={newReply}
                     onChange={(e) => setNewReply(e.target.value)}
-                    placeholder="輸入你的留言..."
+                    placeholder={t('enterCommentPlaceholder')}
                 />
-                <button onClick={handleAddReply}>送出留言</button>
+                <button onClick={handleAddReply}>{t('submitComment')}</button>
             </div>
         </div>
     );

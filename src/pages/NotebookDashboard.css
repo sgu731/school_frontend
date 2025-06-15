@@ -1,0 +1,304 @@
+/* NotebookDashboard 專屬樣式 */
+.notebook-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+}
+
+/* 標題區域 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--primary-orange);
+}
+
+/* 搜尋欄 */
+.search-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 2rem;
+    top: 20%;
+    color: var(--secondary-text);
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+/* 筆記容器 */
+.notes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 5rem;
+}
+
+/* 新增筆記卡片 */
+.add-note {
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    box-shadow: var(--shadow);
+}
+
+.add-note:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: #f3f4f6;
+}
+
+.add-note svg {
+    color: var(--secondary-text);
+    margin-bottom: 0.5rem;
+}
+
+.add-note span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+/* 筆記卡片 */
+.note-card {
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.note-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: #f3f4f6;
+}
+
+.note-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.note-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-preview {
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.note-date {
+    font-size: 0.75rem;
+    color: var(--secondary-text);
+}
+
+.note-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-icon {
+    color: var(--success-green);
+    transition: color 0.2s;
+}
+
+.edit-icon:hover {
+    color: var(--success-green-hover);
+}
+
+.delete-icon {
+    color: var(--danger-red);
+    transition: color 0.2s;
+}
+
+.delete-icon:hover {
+    color: var(--danger-red-hover);
+}
+
+/* 編輯模式 */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.edit-title {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-title:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+.edit-content {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    resize: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.edit-content:focus {
+    outline: none;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.2);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--success-green);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.save-btn:hover {
+    background: var(--success-green-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.cancel-btn {
+    padding: 0.5rem 1rem;
+    background: #ffffff;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.cancel-btn:hover {
+    background: #f3f4f6;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .notebook-dashboard {
+        padding: 1.5rem;
+    }
+
+    .header h2 {
+        font-size: 1.75rem;
+    }
+
+    .search-container {
+        width: 100%;
+    }
+
+    .notes-container {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    .notes-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .add-note svg,
+    .add-note span {
+        font-size: 0.8rem;
+    }
+
+    .note-title {
+        font-size: 0.9rem;
+    }
+
+    .note-preview {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 2;
+    }
+
+    .note-date {
+        font-size: 0.7rem;
+    }
+}
